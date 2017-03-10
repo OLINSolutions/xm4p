@@ -2,3 +2,7 @@
 xmatters/.project
 
 xmatters/.pydevproject
+
+*.pyc
+
+xmatters/.settings/org.eclipse.core.resources.prefs
