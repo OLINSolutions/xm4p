@@ -16,3 +16,5 @@ xmatters/xmatters.egg-info/requires.txt
 xmatters/xmatters.egg-info/PKG-INFO
 
 xmatters/xmatters.egg-info/dependency_links.txt
+
+xmatters/dist/xmatters-1.0.0.dev1.tar.gz
