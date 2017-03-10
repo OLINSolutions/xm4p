@@ -6,3 +6,13 @@ xmatters/.pydevproject
 *.pyc
 
 xmatters/.settings/org.eclipse.core.resources.prefs
+
+xmatters/xmatters.egg-info/top_level.txt
+
+xmatters/xmatters.egg-info/SOURCES.txt
+
+xmatters/xmatters.egg-info/requires.txt
+
+xmatters/xmatters.egg-info/PKG-INFO
+
+xmatters/xmatters.egg-info/dependency_links.txt
