@@ -18,3 +18,13 @@ xmatters/xmatters.egg-info/PKG-INFO
 xmatters/xmatters.egg-info/dependency_links.txt
 
 xmatters/dist/xmatters-1.0.0.dev1.tar.gz
+
+xmatters/build/lib/xmatters/__init__.py
+
+xmatters/build/lib/xmatters/common.py
+
+xmatters/build/lib/xmatters/events.py
+
+xmatters/build/lib/xmatters/recipients.py
+
+xmatters/dist/xmatters-1.0.0.dev1-py3-none-any.whl
