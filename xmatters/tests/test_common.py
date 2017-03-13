@@ -30,32 +30,54 @@ class ErrorTest(unittest.TestCase):
     def tearDown(self):
         print("ErrorTest.tearDown")
 
-    def test_Error(self):
-        print("Start test_Error")
-        err_obj = Error(self.code, self.reason, self.message)
-        self.assertIsInstance(err_obj, Error)
-        self.assertEqual(err_obj.code, self.code)
-        self.assertEqual(err_obj.reason, self.reason)
-        self.assertEqual(err_obj.message, self.message)
-        print("test_Error Successful")
+    def test_Error_from_positional_args(self):
+        print("Start test_Error_from_positional_args")
+        obj = Error(self.code, self.reason, self.message)
+        self.assertIsInstance(obj, Error)
+        self.assertEqual(obj.code, self.code)
+        self.assertEqual(obj.reason, self.reason)
+        self.assertEqual(obj.message, self.message)
+        print('arg_dict: ' + str(obj.arg_dict()))
+        self.assertRaises(TypeError, Error, self.message, self.code, self.reason)
+        self.assertRaises(TypeError, Error, self.code, self.reason)
+        print("test_Error_from_positional_args Successful")
+
+    def test_Error_from_kw_args(self):
+        print("Start test_Error_from_kw_args")
+        obj = Error(
+            code=self.code, reason=self.reason, message=self.message)
+        self.assertIsInstance(obj, Error)
+        self.assertEqual(obj.code, self.code)
+        self.assertEqual(obj.reason, self.reason)
+        self.assertEqual(obj.message, self.message)
+        print('arg_dict: ' + str(obj.arg_dict()))
+        with self.assertRaises(TypeError) as cm:
+            obj = Error(
+                reason=self.code, code=self.reason, message=self.message)
+        print(cm.exception.args)
+        with self.assertRaises(TypeError) as cm:
+            obj = Error(
+                code=self.code, message=self.message)
+        print(cm.exception.args)
+        print("test_Error_from_kw_args Successful")
 
     def test_Error_from_json_obj(self):
         print("Start test_Error_from_json_obj")
-        err_json_obj = json.loads(self.err_json_str);
-        err_obj = Error.from_json_obj(err_json_obj)
-        self.assertIsInstance(err_obj, Error)
-        self.assertEqual(err_obj.code, self.code)
-        self.assertEqual(err_obj.reason, self.reason)
-        self.assertEqual(err_obj.message, self.message)
+        json_obj = json.loads(self.err_json_str);
+        obj = Error.from_json_obj(json_obj)
+        self.assertIsInstance(obj, Error)
+        self.assertEqual(obj.code, self.code)
+        self.assertEqual(obj.reason, self.reason)
+        self.assertEqual(obj.message, self.message)
         print("test_Error_from_json_obj Successful")
 
     def test_Error_from_json_str(self):
         print("Start test_Error_from_json_str")
-        err_obj = Error.from_json_str(self.err_json_str)
-        self.assertIsInstance(err_obj, Error)
-        self.assertEqual(err_obj.code, self.code)
-        self.assertEqual(err_obj.reason, self.reason)
-        self.assertEqual(err_obj.message, self.message)
+        obj = Error.from_json_str(self.err_json_str)
+        self.assertIsInstance(obj, Error)
+        self.assertEqual(obj.code, self.code)
+        self.assertEqual(obj.reason, self.reason)
+        self.assertEqual(obj.message, self.message)
         print("test_Error_from_json_str Successful")
 
 class PaginationLinksTest(unittest.TestCase):
@@ -70,18 +92,41 @@ class PaginationLinksTest(unittest.TestCase):
         self.links_json_str = (
             '{"links":{"self": "%s", "previous": "%s", "next": "%s" }}'
             )%(self.self, self.previous, self.next)
+        self.min_links_json_str = (
+            '{"links":{"self": "%s"}}'
+            )%(self.self, self.previous, self.next)
 
     def tearDown(self):
         print("PaginationLinksTest.tearDown")
 
-    def test_PaginationLinks(self):
-        print("Start test_PaginationLinks")
-        obj = PaginationLinks(self.next, self.previous, self.self)
+    def test_PaginationLinks_from_kw_args(self):
+        print("Start test_PaginationLinks_from_kw_args")
+        obj = PaginationLinks(
+            next_link=self.next, previous_link=self.previous,
+            self_link=self.self)
         self.assertIsInstance(obj, PaginationLinks)
         self.assertEqual(obj.self, self.self)
         self.assertEqual(obj.previous, self.previous)
         self.assertEqual(obj.next, self.next)
-        print("test_PaginationLinks Successful")
+        print('arg_dict: ' + str(obj.arg_dict()))
+        print("test_PaginationLinks_from_kw_args Successful")
+
+    def test_PaginationLinks_from_positional_args(self):
+        print("Start test_PaginationLinks_from_positional_args")
+        obj = PaginationLinks(self.self, self.previous, self.next)
+        self.assertIsInstance(obj, PaginationLinks)
+        self.assertEqual(obj.self, self.self)
+        self.assertEqual(obj.previous, self.previous)
+        self.assertEqual(obj.next, self.next)
+        print('arg_dict: ' + str(obj.arg_dict()))
+        obj = PaginationLinks(self.self)
+        self.assertIsInstance(obj, PaginationLinks)
+        self.assertEqual(obj.self, self.self)
+        self.assertIsNone(obj.previous)
+        self.assertIsNone(obj.next)
+        self.assertRaises(TypeError, PaginationLinks, 1)
+        self.assertRaises(TypeError, PaginationLinks, 0, self.reason)
+        print("test_PaginationLinks_from_positional_args Successful")
 
     def test_PaginationLinks_from_json_obj(self):
         print("Start test_PaginationLinks_from_json_obj")
