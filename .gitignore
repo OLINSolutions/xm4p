@@ -14,3 +14,5 @@ xmatters/dist/xmatters-1.0.0.dev1.tar.gz
 xmatters/build/*
 
 xmatters/dist/xmatters-1.0.0.dev1-py3-none-any.whl
+
+*.log

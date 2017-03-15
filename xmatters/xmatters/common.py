@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
-"""xmatters Common Objects
+"""xMatters Common Objects
 
-Common objects used throughout the xmatters API.
+Common objects used throughout the xMatters API.
 
 Reference:
     https://help.xmatters.com/xmAPI/index.html#common-objects
@@ -11,8 +11,38 @@ Reference:
 """
 
 import json
+import logging
+
+LOGGER = logging.getLogger('xlogger')
 
 class XmattersBase(object):
+    """xMatters object representation
+
+    Used to create a Python object that represents the JSON oriented
+    payloads defined in the xMatters API.
+    This base class provides helper and utility methods to generalize
+    the creation of such objects by simply defining the attribute names,
+    JSON field names, associated types, and whether the atribute is required.
+
+    Args:
+        *args
+            Variable length argument list.
+            Must follow the order of types.
+        **kwargs
+            Arbitrary keyword arguments.
+            Must follow the appropriate type for the named arg
+
+    Attributes:
+        argdict (:obj:`dict` of :obj:`str`): Attribute names indexed by
+            argument names
+        reqargs (:obj:`dict` of :obj:`bool`): Required flag (bool) indexed by
+            argument names
+        attrdict (:obj:`dict` of :obj:`str`): JSON names indexed by
+            attribute names
+        typedict (:obj:`dict` of :obj:`class`): Argument type indexed by
+            attribute names
+        jsondict(:obj:`dict` of :obj:`str`): Attrib names indexed by JSON names
+    """
 
     @property
     def argdict(self) -> dict:
@@ -21,7 +51,7 @@ class XmattersBase(object):
 
     @property
     def reqargs(self) -> dict:
-        """:obj:`dict` of :obj:`str`: Argument to required flag dictionary"""
+        """:obj:`dict` of :obj:`bool`: Argument to required flag dictionary"""
         return getattr(self, '__req_args_dict')
 
     @property
@@ -31,7 +61,7 @@ class XmattersBase(object):
 
     @property
     def typedict(self) -> dict:
-        """:obj:`dict` of :obj:`str`: Attribute to argument type dictionary"""
+        """:obj:`dict` of :obj:`class` Attribute to argument type dictionary"""
         return getattr(self,'__type_dict')
 
     @property
@@ -43,43 +73,112 @@ class XmattersBase(object):
         """Convert dictionaries to their class instance based on typedict"""
         if isinstance(value, dict):
             print('XmattersBase._setattr - value is instance of dict')
-            newType = self.typedict[name]
-            print('XmattersBase._setattr - newType: %s'%(newType.__name__))
-            value = newType(value)
+            new_type = self.typedict[name]
+            print('XmattersBase._setattr - new_type: %s'%(new_type.__name__))
+            value = new_type(value)
             print('XmattersBase._setattr - value(%s): %s'%(
                 value.__class__.__name__, str(value)))
         else:
             print('XmattersBase._setattr - value IS NOT instance of dict')
         setattr(self, name, value)
 
-    def _process_arg_names(self, names: list) -> (dict, dict):
-        """(dict, dict): Builds name and req'd field dicts from tagged names"""
+    def _process_arg_names(self, names:list): #pylint:disable=no-self-use
+        """dict, dict: Builds name and req'd field dicts from tagged names"""
         arg_names = []
         req_args = []
         for arg in names:
-            arg_names.append(arg if arg[0] is not '*' else arg[1:])
-            req_args.append(arg[0] is not '*')
+            arg_names.append(arg if arg[0] != '*' else arg[1:])
+            req_args.append(arg[0] != '*')
         return arg_names, req_args
 
-    def _build_dicts(self, arg_names, req_args,
-                     attr_names, attr_types, json_names):
+    def _build_arg_dicts(self, arg_names, req_args, attr_names):
         """Creates the internal member lookup dictionaries"""
         setattr(self, '__arg_dict', dict(zip(arg_names, attr_names)))
         setattr(self, '__req_args_dict', dict(zip(arg_names, req_args)))
+
+    def _build_attr_dicts(self, attr_names, attr_types, json_names):
+        """Creates the internal member lookup dictionaries"""
         setattr(self, '__attr_dict', dict(zip(attr_names, json_names)))
         setattr(self, '__type_dict', dict(zip(attr_names, attr_types)))
         setattr(self, '__json_dict', dict(zip(json_names, attr_names)))
 
     def _is_proper_type(self, attr, value) -> bool:
         """bool: True if value is the proper type expected by attr"""
-        return type(value) is self.attrdict[attr]
-    
+        attr_type = self.typedict[attr]
+        value_type = type(value)
+        is_xtype = issubclass(attr_type, XmattersBase) and value_type is dict
+        return is_xtype or value_type is attr_type
+
+    def __debug_input_args(self, args): #pylint:disable=no-self-use
+        if args:
+            print('type(args): %s = %s'%(str(type(args)), str(args)))
+            print('args(%d): %s:%s'%(
+                len(args) if args is not None else 0,
+                str(type(args[0]) if args is not None else 'None'),
+                str(args[0]) if args is not None else 'None'))
+
+    def __process_dictionary_args(self, json_names, args):
+        for dictionary in args:
+            for key in dictionary:
+                if key in json_names:
+                    if not self._is_proper_type(self.jsondict[key],
+                                                dictionary[key]):
+                        raise TypeError((
+                            "Initializing class %s. JSON Attribute %s "
+                            "should be a %s, but a %s was found")%(
+                            self.__class__.__name__, key,
+                            str(self.typedict[self.jsondict[key]]),
+                            str(type(dictionary[key]))))
+                    print('Using args as dict to set %s from %s to %s'%(
+                        self.jsondict[key], key, dictionary[key]))
+                    self._setattr(self.jsondict[key], dictionary[key])
+
+    def __process_positional_args(self, attr_names, attr_types, args):
+        key = 0
+        for value in args:
+            if not isinstance(value,attr_types[key]):
+                raise TypeError((
+                    "Initializing class %s. Attribute at position %d (%s) "
+                    "should be a %s, but a %s was found")%(
+                    self.__class__.__name__, key, attr_names[key],
+                    str(attr_types[key]), str(type(value))))
+            print('Using positional arg %d to set %s to %s'%(
+                key, attr_names[key], str(value)))
+            self._setattr(attr_names[key], value)
+            key += 1
+
+    def __process_keyword_args(self, arg_names, kwargs):
+        for key in kwargs:
+            if key in arg_names:
+                attr_name = self.argdict[key]
+                if not isinstance(kwargs[key], self.typedict[attr_name]):
+                    raise TypeError((
+                        "Initializing class %s. Keyword argument '%s' "
+                        "should be a %s, but a %s was found")%(
+                        self.__class__.__name__, key,
+                        str(self.typedict[attr_name]),
+                        str(type(kwargs[key]))))
+                print('Using kwargs to set %s from %s to %s'%(
+                    self.argdict[key], key, kwargs[key]))
+                self._setattr(self.argdict[key], kwargs[key])
+
+    def __confirm_required_args(self, arg_names):
+        """Final check for required arguments"""
+        missing_args = []
+        for key in arg_names:
+            if self.reqargs[key]:
+                if getattr(self, self.argdict[key]) is None:
+                    missing_args.append(self.argdict[key])
+        if missing_args:
+            raise TypeError("Initializing class %s. Missing arguments: %s."%(
+                self.__class__.__name__, ",".join(missing_args)))
+
     def __init__(self, *args, **kwargs):
         """Creates and initializes an instance.
 
         Args:
             *args
-                Variable length argument list. 
+                Variable length argument list.
                 Must follow the order of types.
             **kwargs
                 Arbitrary keyword arguments.
@@ -89,96 +188,45 @@ class XmattersBase(object):
             object: An initialized instance
 
         Raises:
-            TypeError: The type of an argument value is not correct, or 
+            TypeError: The type of an argument value is not correct, or
                 a required argument is missing
         """
-        # Get arguments and attribute information from subclass
         cls = self.__class__
-        print('XmattersBase.__init__ - cls.__name__: %s'%(cls.__name__))
-        arg_names = cls._arg_names
-        print('XmattersBase.__init__ - cls._arg_names: %s'%str(arg_names))
-        attr_names = cls._attr_names
-        print('XmattersBase.__init__ - cls._attr_names: %s'%str(attr_names))
-        attr_types = cls._attr_types
-        print('XmattersBase.__init__ - cls._attr_types: %s'%str(attr_types))
-        json_names = cls._json_names
-        print('XmattersBase.__init__ - cls._json_names: %s'%str(json_names))
+        clsname = cls.__name__
+        LOGGER.debug('XmattersBase.__init__ - self.__class__.__name__: %s',
+            clsname)
+        # Get arguments and attribute information from subclass
+        arg_names = cls._arg_names #pylint:disable=no-member, protected-access
+        attr_names = cls._attr_names #pylint:disable=no-member, protected-access
+        attr_types = cls._attr_types #pylint:disable=no-member, protected-access
+        json_names = cls._json_names #pylint:disable=no-member, protected-access
         # Fixup argument names and build required arguments array
         arg_names, req_args = self._process_arg_names(arg_names)
+        LOGGER.debug(
+            ('XmattersBase.__init__ - \n\targ_names: %s\n\tattr_names: %s'
+             '\n\tattr_types: %s\n\tjson_names: %s'),
+            str(arg_names), str(attr_names), str(attr_types), str(json_names))
         # Create and initialize attributes
         for name in attr_names:
             setattr(self, name, None)
         # Create lookup dictionaries
-        self._build_dicts(
-            arg_names, req_args,
-            attr_names, attr_types, json_names)
+        self._build_arg_dicts(arg_names, req_args, attr_names)
+        self._build_attr_dicts(attr_names, attr_types, json_names)
         # debug input args
-        if args:
-            print('type(args): %s'%str(type(args)))
-            print('args(%d): %s:%s'%(
-                len(args) if args is not None else 0,
-                str(type(args[0]) if args is not None else 'None'),
-                str(args[0]) if args is not None else 'None'))
-            print(dir(args))
-            print((type(args[0]) 
-                if args is not None and 
-                    len(args) == 1 else 'n/a'))
+        self.__debug_input_args(args)
         # Process positional args
         numkw = len(kwargs) if kwargs else 0
         print('numkw: %d'%numkw)
         # First check if arguments come in as a dictionary
-        if (args and len(args) == 1 and type(args[0]) is dict):
-            for dictionary in args:
-                for key in dictionary:
-                    if key in json_names:
-                        if self._is_proper_type(self.jsondict[key],
-                                                dictionary[key]):
-                            print('Using args as dict to set %s from %s to %s'%(
-                                self.jsondict[key], key, dictionary[key]))
-                            self._setattr(self.jsondict[key], dictionary[key])
-                        else:
-                            raise TypeError((
-                                "Initializing class %s. JSON Attribute %s "
-                                "should be a %s, but a %s was found")%(
-                                cls.__name__, key,
-                                str(self.typedict[self.jsondict[key]]), 
-                                str(type(dictionary[key]))))
+        if args and len(args) == 1 and isinstance(args[0], dict):
+            self.__process_dictionary_args(json_names, args)
         # Next check if the args are passed in as raw values
         elif args:
-            key = 0
-            for value in args:
-                if type(value) is not attr_types[key]:
-                    raise TypeError((
-                        "Initializing class %s. Attribute at position %d (%s) "
-                        "should be a %s, but a %s was found")%(
-                        cls.__name__, key, attr_names[key],
-                        str(attr_types[key]), str(type(value))))
-                print('Using positional arg %d to set %s to %s'%(
-                    key, attr_names[key], str(value)))
-                self._setattr(attr_names[key], value)
-                key += 1
+            self.__process_positional_args(attr_names, attr_types, args)
         # Process keyword args
-        for key in kwargs:
-            if key in arg_names:
-                attr_name = self.argdict[key]
-                if type(kwargs[key]) is not self.typedict[attr_name]:
-                    raise TypeError((
-                        "Initializing class %s. Keyword argument '%s' "
-                        "should be a %s, but a %s was found")%(
-                        cls.__name__, key, str(self.typedict[attr_name]),
-                        str(type(kwargs[key]))))
-                print('Using kwargs to set %s from %s to %s'%(
-                    self.argdict[key], key, kwargs[key]))
-                self._setattr(self.argdict[key], kwargs[key])
+        self.__process_keyword_args(arg_names, kwargs)
         # Final check for required arguments
-        missing_args = []
-        for key in arg_names:
-            if self.reqargs[key]:
-                if getattr(self, self.argdict[key]) is None:
-                    missing_args.append(self.argdict[key])
-        if missing_args:
-            raise TypeError("Initializing class %s. Missing arguments: %s."%(
-                cls.__name__, ",".join(missing_args)))
+        self.__confirm_required_args(arg_names)
 
     @classmethod
     def from_json_obj(cls, json_self: object):
@@ -210,7 +258,7 @@ class XmattersBase(object):
 
 
 class Error(XmattersBase):
-    """xmatters Error object representation
+    """xMatters Error object representation
 
     Describes an error.
     For a complete list of error response codes, see HTTP response codes.
@@ -235,7 +283,7 @@ class Error(XmattersBase):
 
 
 class PaginationLinks(XmattersBase):
-    """xmatters PaginationLinks object representation
+    """xMatters PaginationLinks object representation
 
     Provides links to cur, prev, and next pages of a paginated result set.
 
@@ -259,11 +307,11 @@ class PaginationLinks(XmattersBase):
 
 
 class Pagination(XmattersBase):
-    """xmatters Pagination object representation
+    """xMatters Pagination object representation
 
     A page of results. Use the links in the links field to retrieve the rest
     of the result set. See also Results pagination.
-    This Class really is a pattern that is followed when the xmatters
+    This Class really is a pattern that is followed when the xMatters
     API is returning a paginated set of results.
 
     Reference:
@@ -290,9 +338,9 @@ class Pagination(XmattersBase):
 
 
 class SelfLink(XmattersBase):
-    """xmatters SelfLink representation
+    """xMatters SelfLink representation
 
-    A link that can be used to reference this object in the xmatters API.
+    A link that can be used to reference this object in the xMatters API.
 
     Reference:
         https://help.xmatters.com/xmAPI/index.html#selfLink
@@ -311,7 +359,7 @@ class SelfLink(XmattersBase):
 
 
 class ReferenceById(XmattersBase):
-    """xmatters ReferenceById representation
+    """xMatters ReferenceById representation
 
     The identifier of a resource.
 
@@ -329,7 +377,7 @@ class ReferenceById(XmattersBase):
 
 
 class ReferenceByIdAndSelfLink(XmattersBase):
-    """xmatters ReferenceByIdAndSelfLink representation
+    """xMatters ReferenceByIdAndSelfLink representation
 
     The identifier of a resource and a SelfLink object that contains a URL
     to the resource.

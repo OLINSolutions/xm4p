@@ -3,21 +3,35 @@
 """Unit tests for EventAuditReport.xmatters.recipients.
 """
 
-import unittest
 import json
+import logging
+import sys
+import unittest
 
 from xmatters import RecipientPointer
 from xmatters import PersonReference
 from xmatters import Recipient
-
 from xmatters import SelfLink
+
+from . import _log_filename
+from . import _log_level
+
+XLOGGER = logging.getLogger('XLOGGER')
+XLOGGER.level = _log_level
+XSTREAM_HANDLER = logging.StreamHandler(sys.stdout)
+XLOGGER.addHandler(XSTREAM_HANDLER)
+XFILE_HANDLER = logging.FileHandler(_log_filename)
+XLOGGER.addHandler(XFILE_HANDLER)
+
+# pylint: disable=missing-docstring, invalid-name, no-member
+# pylint: disable=too-many-instance-attributes
 
 class RecipientPointerTest(unittest.TestCase):
     """Collection of unit tests cases for the RecipientPointer class
     """
 
     def setUp(self):
-        print("RecipientPointerTest.setUp")
+        XLOGGER.debug("RecipientPointerTest.setUp")
         self.id_p = "438e9245-b32d-445f-916bd3e07932c892"
         self.recipient_type_p = "PERSON"
         self.rp_p_json_str = (
@@ -35,10 +49,10 @@ class RecipientPointerTest(unittest.TestCase):
             )%(self.id_d, self.recipient_type_d)
 
     def tearDown(self):
-        print("RecipientPointerTest.tearDown")
+        XLOGGER.debug("RecipientPointerTest.tearDown")
 
     def test_RecipientPointer(self):
-        print("Start test_RecipientPointer")
+        XLOGGER.debug("Start test_RecipientPointer")
         obj = RecipientPointer(self.id_p, self.recipient_type_p)
         self.assertIsInstance(obj, RecipientPointer)
         self.assertEqual(obj.id, self.id_p)
@@ -51,29 +65,29 @@ class RecipientPointerTest(unittest.TestCase):
         self.assertIsInstance(obj, RecipientPointer)
         self.assertEqual(obj.id, self.id_d)
         self.assertEqual(obj.recipient_type, self.recipient_type_d)
-        print("test_RecipientPointer Successful")
+        XLOGGER.debug("test_RecipientPointer Successful")
 
     def test_RecipientPointer_from_json_obj(self):
-        print("Start test_RecipientPointer_from_json_obj")
-        json_obj = json.loads(self.rp_p_json_str);
+        XLOGGER.debug("Start test_RecipientPointer_from_json_obj")
+        json_obj = json.loads(self.rp_p_json_str)
         obj = RecipientPointer.from_json_obj(json_obj)
         self.assertIsInstance(obj, RecipientPointer)
         self.assertEqual(obj.id, self.id_p)
         self.assertEqual(obj.recipient_type, self.recipient_type_p)
-        json_obj = json.loads(self.rp_g_json_str);
+        json_obj = json.loads(self.rp_g_json_str)
         obj = RecipientPointer.from_json_obj(json_obj)
         self.assertIsInstance(obj, RecipientPointer)
         self.assertEqual(obj.id, self.id_g)
         self.assertEqual(obj.recipient_type, self.recipient_type_g)
-        json_obj = json.loads(self.rp_d_json_str);
+        json_obj = json.loads(self.rp_d_json_str)
         obj = RecipientPointer.from_json_obj(json_obj)
         self.assertIsInstance(obj, RecipientPointer)
         self.assertEqual(obj.id, self.id_d)
         self.assertEqual(obj.recipient_type, self.recipient_type_d)
-        print("test_RecipientPointer_from_json_obj Successful")
+        XLOGGER.debug("test_RecipientPointer_from_json_obj Successful")
 
     def test_RecipientPointer_from_json_str(self):
-        print("Start test_RecipientPointer_from_json_str")
+        XLOGGER.debug("Start test_RecipientPointer_from_json_str")
         obj = RecipientPointer.from_json_str(self.rp_p_json_str)
         self.assertIsInstance(obj, RecipientPointer)
         self.assertEqual(obj.id, self.id_p)
@@ -86,14 +100,14 @@ class RecipientPointerTest(unittest.TestCase):
         self.assertIsInstance(obj, RecipientPointer)
         self.assertEqual(obj.id, self.id_d)
         self.assertEqual(obj.recipient_type, self.recipient_type_d)
-        print("test_RecipientPointer_from_json_str Successful")
+        XLOGGER.debug("test_RecipientPointer_from_json_str Successful")
 
 class PersonReferenceTest(unittest.TestCase):
     """Collection of unit tests cases for the PersonReference class
     """
 
     def setUp(self):
-        print("PersonReferenceTest.setUp")
+        XLOGGER.debug("PersonReferenceTest.setUp")
         self.id = "481086d8-357a-4279-b7d5-d7dce48fcd12"
         self.target_name = "mmcbride"
         self.self = "/api/xm/1/people/481086d8-357a-4279-b7d5-d7dce48fcd12"
@@ -104,38 +118,38 @@ class PersonReferenceTest(unittest.TestCase):
             )%(self.id, self.target_name, self.links_json_str)
 
     def tearDown(self):
-        print("PersonReferenceTest.tearDown")
+        XLOGGER.debug("PersonReferenceTest.tearDown")
 
     def test_PersonReference(self):
-        print("Start test_PersonReference")
+        XLOGGER.debug("Start test_PersonReference")
         obj = PersonReference(self.id, self.target_name, self.links)
         self.assertIsInstance(obj, PersonReference)
         self.assertEqual(obj.id, self.id)
         self.assertEqual(obj.target_name, self.target_name)
         self.assertIsInstance(obj.links, SelfLink)
         self.assertEqual(obj.links, self.links)
-        print("test_PersonReference Successful")
+        XLOGGER.debug("test_PersonReference Successful")
 
     def test_PersonReference_from_json_obj(self):
-        print("Start test_PersonReference_from_json_obj")
-        json_obj = json.loads(self.pr_json_str);
+        XLOGGER.debug("Start test_PersonReference_from_json_obj")
+        json_obj = json.loads(self.pr_json_str)
         obj = PersonReference.from_json_obj(json_obj)
         self.assertIsInstance(obj, PersonReference)
         self.assertEqual(obj.id, self.id)
         self.assertEqual(obj.target_name, self.target_name)
         self.assertIsInstance(obj.links, SelfLink)
         self.assertEqual(obj.links.self, self.links.self)
-        print("test_PersonReference_from_json_obj Successful")
+        XLOGGER.debug("test_PersonReference_from_json_obj Successful")
 
     def test_PersonReference_from_json_str(self):
-        print("Start test_PersonReference_from_json_str")
+        XLOGGER.debug("Start test_PersonReference_from_json_str")
         obj = PersonReference.from_json_str(self.pr_json_str)
         self.assertIsInstance(obj, PersonReference)
         self.assertEqual(obj.id, self.id)
         self.assertEqual(obj.target_name, self.target_name)
         self.assertIsInstance(obj.links, SelfLink)
         self.assertEqual(obj.links.self, self.links.self)
-        print("test_PersonReference_from_json_str Successful")
+        XLOGGER.debug("test_PersonReference_from_json_str Successful")
 
 """ 
 Test Base Recipient
