@@ -1,4 +1,5 @@
 __all__ = ['common', 'recipients', 'events']
+from xmatters.common import XmattersBase
 from xmatters.common import Error
 from xmatters.common import Pagination
 from xmatters.common import PaginationLinks

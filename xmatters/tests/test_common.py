@@ -37,7 +37,7 @@ class ErrorTest(unittest.TestCase):
         self.assertEqual(obj.code, self.code)
         self.assertEqual(obj.reason, self.reason)
         self.assertEqual(obj.message, self.message)
-        print('arg_dict: ' + str(obj.arg_dict()))
+        print('argdict: ' + str(obj.argdict))
         self.assertRaises(TypeError, Error, self.message, self.code, self.reason)
         self.assertRaises(TypeError, Error, self.code, self.reason)
         print("test_Error_from_positional_args Successful")
@@ -50,7 +50,7 @@ class ErrorTest(unittest.TestCase):
         self.assertEqual(obj.code, self.code)
         self.assertEqual(obj.reason, self.reason)
         self.assertEqual(obj.message, self.message)
-        print('arg_dict: ' + str(obj.arg_dict()))
+        print('argdict: ' + str(obj.argdict))
         with self.assertRaises(TypeError) as cm:
             obj = Error(
                 reason=self.code, code=self.reason, message=self.message)
@@ -90,11 +90,14 @@ class PaginationLinksTest(unittest.TestCase):
         self.previous = "/api/xm/1/people?offset=0&limit=100"
         self.next = "/api/xm/1/people?offset=200&limit=100"
         self.links_json_str = (
-            '{"links":{"self": "%s", "previous": "%s", "next": "%s" }}'
+            '{"self": "%s", "previous": "%s", "next": "%s" }'
             )%(self.self, self.previous, self.next)
         self.min_links_json_str = (
-            '{"links":{"self": "%s"}}'
-            )%(self.self, self.previous, self.next)
+            '{"self": "%s"}'
+            )%(self.self)
+        self.bad_links_json_str = (
+            '{"next": "%s", "previous": "%s" }'
+            )%(self.next, self.previous)
 
     def tearDown(self):
         print("PaginationLinksTest.tearDown")
@@ -108,7 +111,7 @@ class PaginationLinksTest(unittest.TestCase):
         self.assertEqual(obj.self, self.self)
         self.assertEqual(obj.previous, self.previous)
         self.assertEqual(obj.next, self.next)
-        print('arg_dict: ' + str(obj.arg_dict()))
+        print('argdict: ' + str(obj.argdict))
         print("test_PaginationLinks_from_kw_args Successful")
 
     def test_PaginationLinks_from_positional_args(self):
@@ -118,14 +121,14 @@ class PaginationLinksTest(unittest.TestCase):
         self.assertEqual(obj.self, self.self)
         self.assertEqual(obj.previous, self.previous)
         self.assertEqual(obj.next, self.next)
-        print('arg_dict: ' + str(obj.arg_dict()))
+        print('argdict: ' + str(obj.argdict))
         obj = PaginationLinks(self.self)
         self.assertIsInstance(obj, PaginationLinks)
         self.assertEqual(obj.self, self.self)
         self.assertIsNone(obj.previous)
         self.assertIsNone(obj.next)
         self.assertRaises(TypeError, PaginationLinks, 1)
-        self.assertRaises(TypeError, PaginationLinks, 0, self.reason)
+        self.assertRaises(TypeError, PaginationLinks, 0, self.previous)
         print("test_PaginationLinks_from_positional_args Successful")
 
     def test_PaginationLinks_from_json_obj(self):
@@ -145,6 +148,7 @@ class PaginationLinksTest(unittest.TestCase):
         self.assertEqual(obj.self, self.self)
         self.assertEqual(obj.previous, self.previous)
         self.assertEqual(obj.next, self.next)
+        self.assertRaises(TypeError, PaginationLinks.from_json_str, self.bad_links_json_str)
         print("test_PaginationLinks_from_json_str Successful")
 
 class PaginationTest(unittest.TestCase):
@@ -162,13 +166,30 @@ class PaginationTest(unittest.TestCase):
         self.previous = None
         self.next = "/api/xm/1/people?offset=100&limit=100"
         self.links_json_str = (
-            '"links":{"self": "%s", "next": "%s"}'
+            '{"self": "%s", "next": "%s"}'
             )%(self.self, self.next)
-        self.links = PaginationLinks.from_json_str('{%s}'%self.links_json_str)
+        self.links = PaginationLinks.from_json_str('%s'%self.links_json_str)
         self.pagi_json_str = (
             '{"count": %d, "total": %d, '
             '"data": [{"id": "%s"},{"id": "%s"}], '
-            '%s}'
+            '"links": %s}'
+            )%(self.count, self.total, self.data_id1, 
+               self.data_id2, self.links_json_str)
+        self.bad_json1 = (
+            '{"count": %d}'
+            )%(self.count)
+        self.bad_json2 = (
+            '{"count": %d, "total": %d}'
+            )%(self.count, self.total)
+        self.bad_json3 = (
+            '{"count": %d, "total": %d, '
+            '"data": [{"id": "%s"},{"id": "%s"}]}'
+            )%(self.count, self.total, self.data_id1, 
+               self.data_id2)
+        self.bad_json4 = (
+            '{"data": %d, "links": %d, '
+            '"count": [{"id": "%s"},{"id": "%s"}], '
+            '"total": %s}'
             )%(self.count, self.total, self.data_id1, 
                self.data_id2, self.links_json_str)
 
@@ -184,6 +205,18 @@ class PaginationTest(unittest.TestCase):
         self.assertIsInstance(obj.links, PaginationLinks)
         self.assertEqual(obj.links, self.links)
         self.assertEqual(obj.total, self.total)
+        self.assertRaises(TypeError, Pagination, self.count)
+        self.assertRaises(TypeError, Pagination, self.count, self.data)
+        self.assertRaises(TypeError, Pagination, self.count, self.data, 
+                          self.links)
+        self.assertRaises(TypeError, Pagination, 'not an int', self.data, 
+                          self.links, self.total)
+        self.assertRaises(TypeError, Pagination, self.count, 'not an object', 
+                          self.links, self.total)
+        self.assertRaises(TypeError, Pagination, self.count, self.data, 
+                          'not a list', self.total)
+        self.assertRaises(TypeError, Pagination, self.count, self.data, 
+                          self.links, 'not an int')
         print("test_Pagination Successful")
 
     def test_Pagination_from_json_obj(self):
@@ -209,6 +242,10 @@ class PaginationTest(unittest.TestCase):
         self.assertEqual(obj.links.self, self.links.self)
         self.assertEqual(obj.links.next, self.links.next)
         self.assertEqual(obj.total, self.total)
+        self.assertRaises(TypeError, Pagination.from_json_str, self.bad_json1)
+        self.assertRaises(TypeError, Pagination.from_json_str, self.bad_json2)
+        self.assertRaises(TypeError, Pagination.from_json_str, self.bad_json3)
+        self.assertRaises(TypeError, Pagination.from_json_str, self.bad_json4)
         print("test_Pagination_from_json_str Successful")
 
 class SelfLinkTest(unittest.TestCase):
@@ -219,6 +256,8 @@ class SelfLinkTest(unittest.TestCase):
         print("SelfLinkTest.setUp")
         self.self = "/api/xm/1/people/84a6dde7-82ad-4e64-9f4d-3b9001ad60de"
         self.self_json_str = ('{"self": "%s"}')%(self.self)
+        self.bad_json1 = ('{"slf": "%s"}')%(self.self)
+        self.bad_json2 = ('{"self": %d}')%(0)
 
     def tearDown(self):
         print("SelfLinkTest.tearDown")
@@ -228,6 +267,8 @@ class SelfLinkTest(unittest.TestCase):
         obj = SelfLink(self.self)
         self.assertIsInstance(obj, SelfLink)
         self.assertEqual(obj.self, self.self)
+        self.assertRaises(TypeError, SelfLink)
+        self.assertRaises(TypeError, SelfLink, 0)
         print("test_SelfLink Successful")
 
     def test_SelfLink_from_json_obj(self):
@@ -243,6 +284,8 @@ class SelfLinkTest(unittest.TestCase):
         obj = SelfLink.from_json_str(self.self_json_str)
         self.assertIsInstance(obj, SelfLink)
         self.assertEqual(obj.self, self.self)
+        self.assertRaises(TypeError, SelfLink.from_json_str, self.bad_json1)
+        self.assertRaises(TypeError, SelfLink.from_json_str, self.bad_json2)
         print("test_SelfLink_from_json_str Successful")
 
 class ReferenceByIdTest(unittest.TestCase):

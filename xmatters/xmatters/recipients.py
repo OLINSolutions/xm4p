@@ -14,12 +14,13 @@ Reference:
 
 import json
 
+from xmatters import XmattersBase
 from xmatters import SelfLink
 from xmatters import ReferenceByIdAndSelfLink
 from xmatters import Pagination
 from xmatters import PaginationLinks
 
-class RecipientPointer(object):
+class RecipientPointer(XmattersBase):
     """xmatters RecipientPointer representation
 
     A reference to a recipient.
@@ -28,7 +29,7 @@ class RecipientPointer(object):
         https://help.xmatters.com/xmAPI/index.html#recipientpointer-object
 
     Args:
-        id (str, optional): The unique identifier or target name of the
+        id (str): The unique identifier or target name of the
             group member.
         recipient_type (str, optional): The type of the group member.
 
@@ -42,41 +43,11 @@ class RecipientPointer(object):
             “GROUP”
             “DEVICE”
     """
+    _arg_names = ['id', '*recipient_type']
+    _arg_names = ['id', 'recipient_type']
+    _json_names = ['id', 'recipientType']
+    _attr_types = [str, str]
 
-    @classmethod
-    def from_json_obj(cls, json_self: object):
-        """Build an RecipientPointer instance from a JSON object
-
-        Args:
-            cls (:class:`RecipientPointer`): Class to instantiate.
-            json_self (:obj:`JSON`): JSON object of a RecipientPointer.
-
-        Returns:
-            RecipientPointer: An instance populated with json_self.
-        """
-        new_obj = cls(
-            json_self['id'] if 'id' in json_self else None,
-            json_self['recipientType'] if 'recipientType' in json_self
-            else None)
-        return new_obj
-
-    @classmethod
-    def from_json_str(cls, json_self: str):
-        """Build a RecipientPointer instance from JSON payload str
-
-        Args:
-            cls (:class:`RecipientPointer`): Class to instantiate.
-            json_self (:str:`JSON`): JSON string of a RecipientPointer.
-
-        Returns:
-            RecipientPointer: An instance populated with json_self.
-        """
-        obj = json.loads(json_self)
-        return cls.from_json_obj(obj)
-
-    def __init__(self, ref_id: str = None, recipient_type: str = None):
-        self.id: str = ref_id
-        self.recipient_type: str = recipient_type
 
 class PersonReference(object):
     """xmatters PersonReference representation
