@@ -18,7 +18,7 @@ from xmatters import ReferenceByIdAndSelfLink
 from . import _log_filename
 from . import _log_level
 
-XLOGGER = logging.getLogger('XLOGGER')
+XLOGGER = logging.getLogger('xlogger')
 XLOGGER.level = _log_level
 XSTREAM_HANDLER = logging.StreamHandler(sys.stdout)
 XLOGGER.addHandler(XSTREAM_HANDLER)
@@ -45,54 +45,52 @@ class ErrorTest(unittest.TestCase):
         XLOGGER.debug("ErrorTest.tearDown")
 
     def test_Error_from_positional_args(self):
-        XLOGGER.debug("Start test_Error_from_positional_args")
+        XLOGGER.debug("ErrorTest.test_Error_from_positional_args: Start")
         obj = Error(self.code, self.reason, self.message)
         self.assertIsInstance(obj, Error)
         self.assertEqual(obj.code, self.code)
         self.assertEqual(obj.reason, self.reason)
         self.assertEqual(obj.message, self.message)
-        XLOGGER.debug('argdict: ' + str(obj.argdict))
-        self.assertRaises(TypeError, Error, self.message, self.code, self.reason)
+        XLOGGER.debug(
+            "ErrorTest.test_Error_from_positional_args: argdict=%s",
+            str(obj.argdict))
+        self.assertRaises(
+            TypeError, Error, self.message, self.code, self.reason)
         self.assertRaises(TypeError, Error, self.code, self.reason)
-        XLOGGER.debug("test_Error_from_positional_args Successful")
+        XLOGGER.debug("ErrorTest.test_Error_from_positional_args: Success")
 
     def test_Error_from_kw_args(self):
-        XLOGGER.debug("Start test_Error_from_kw_args")
+        XLOGGER.debug("ErrorTest.test_Error_from_kw_args: Start")
         obj = Error(
             code=self.code, reason=self.reason, message=self.message)
         self.assertIsInstance(obj, Error)
         self.assertEqual(obj.code, self.code)
         self.assertEqual(obj.reason, self.reason)
         self.assertEqual(obj.message, self.message)
-        XLOGGER.debug('argdict: ' + str(obj.argdict))
-        with self.assertRaises(TypeError) as cm:
-            obj = Error(
+        self.assertRaises(TypeError, Error,
                 reason=self.code, code=self.reason, message=self.message)
-        XLOGGER.debug(cm.exception.args)
-        with self.assertRaises(TypeError) as cm:
-            obj = Error(
+        self.assertRaises(TypeError, Error,
                 code=self.code, message=self.message)
-        XLOGGER.debug(cm.exception.args)
-        XLOGGER.debug("test_Error_from_kw_args Successful")
+        XLOGGER.debug("ErrorTest.test_Error_from_kw_args: Success")
 
     def test_Error_from_json_obj(self):
-        XLOGGER.debug("Start test_Error_from_json_obj")
+        XLOGGER.debug("ErrorTest.test_Error_from_json_obj: Start")
         json_obj = json.loads(self.err_json_str)
         obj = Error.from_json_obj(json_obj)
         self.assertIsInstance(obj, Error)
         self.assertEqual(obj.code, self.code)
         self.assertEqual(obj.reason, self.reason)
         self.assertEqual(obj.message, self.message)
-        XLOGGER.debug("test_Error_from_json_obj Successful")
+        XLOGGER.debug("ErrorTest.test_Error_from_json_obj: Success")
 
     def test_Error_from_json_str(self):
-        XLOGGER.debug("Start test_Error_from_json_str")
+        XLOGGER.debug("ErrorTest.test_Error_from_json_str: Start")
         obj = Error.from_json_str(self.err_json_str)
         self.assertIsInstance(obj, Error)
         self.assertEqual(obj.code, self.code)
         self.assertEqual(obj.reason, self.reason)
         self.assertEqual(obj.message, self.message)
-        XLOGGER.debug("test_Error_from_json_str Successful")
+        XLOGGER.debug("ErrorTest.test_Error_from_json_str: Success")
 
 class PaginationLinksTest(unittest.TestCase):
     """Collection of unit tests cases for the PaginationLinks class
@@ -117,7 +115,8 @@ class PaginationLinksTest(unittest.TestCase):
         XLOGGER.debug("PaginationLinksTest.tearDown")
 
     def test_PaginationLinks_from_kw_args(self):
-        XLOGGER.debug("Start test_PaginationLinks_from_kw_args")
+        XLOGGER.debug(
+            "PaginationLinksTest.test_PaginationLinks_from_kw_args: Start")
         obj = PaginationLinks(
             next_link=self.next, previous_link=self.previous,
             self_link=self.self)
@@ -125,17 +124,20 @@ class PaginationLinksTest(unittest.TestCase):
         self.assertEqual(obj.self, self.self)
         self.assertEqual(obj.previous, self.previous)
         self.assertEqual(obj.next, self.next)
-        XLOGGER.debug('argdict: ' + str(obj.argdict))
-        XLOGGER.debug("test_PaginationLinks_from_kw_args Successful")
+        XLOGGER.debug(
+            "PaginationLinksTest.test_PaginationLinks_from_kw_args argdict: %s",
+            str(obj.argdict))
+        XLOGGER.debug(
+            "PaginationLinksTest.test_PaginationLinks_from_kw_args: Success")
 
     def test_PaginationLinks_from_positional_args(self):
-        XLOGGER.debug("Start test_PaginationLinks_from_positional_args")
+        XLOGGER.debug(
+            "PaginationLinksTest.test_PaginationLinks_from_positional_args")
         obj = PaginationLinks(self.self, self.previous, self.next)
         self.assertIsInstance(obj, PaginationLinks)
         self.assertEqual(obj.self, self.self)
         self.assertEqual(obj.previous, self.previous)
         self.assertEqual(obj.next, self.next)
-        XLOGGER.debug('argdict: ' + str(obj.argdict))
         obj = PaginationLinks(self.self)
         self.assertIsInstance(obj, PaginationLinks)
         self.assertEqual(obj.self, self.self)
@@ -143,27 +145,33 @@ class PaginationLinksTest(unittest.TestCase):
         self.assertIsNone(obj.next)
         self.assertRaises(TypeError, PaginationLinks, 1)
         self.assertRaises(TypeError, PaginationLinks, 0, self.previous)
-        XLOGGER.debug("test_PaginationLinks_from_positional_args Successful")
+        XLOGGER.debug(
+            ("PaginationLinksTest.test_PaginationLinks_from_positional_args:"
+             " Success"))
 
     def test_PaginationLinks_from_json_obj(self):
-        XLOGGER.debug("Start test_PaginationLinks_from_json_obj")
+        XLOGGER.debug(
+            "PaginationLinksTest.test_PaginationLinks_from_json_obj: Start")
         json_obj = json.loads(self.links_json_str)
         obj = PaginationLinks.from_json_obj(json_obj)
         self.assertIsInstance(obj, PaginationLinks)
         self.assertEqual(obj.self, self.self)
         self.assertEqual(obj.previous, self.previous)
         self.assertEqual(obj.next, self.next)
-        XLOGGER.debug("test_PaginationLinks_from_json_obj Successful")
+        XLOGGER.debug(
+            "PaginationLinksTest.test_PaginationLinks_from_json_obj: Success")
 
     def test_PaginationLinks_from_json_str(self):
-        XLOGGER.debug("Start test_PaginationLinks_from_json_str")
+        XLOGGER.debug(
+            "PaginationLinksTest.test_PaginationLinks_from_json_str: Start")
         obj = PaginationLinks.from_json_str(self.links_json_str)
         self.assertIsInstance(obj, PaginationLinks)
         self.assertEqual(obj.self, self.self)
         self.assertEqual(obj.previous, self.previous)
         self.assertEqual(obj.next, self.next)
         self.assertRaises(TypeError, PaginationLinks.from_json_str, self.bad_links_json_str)
-        XLOGGER.debug("test_PaginationLinks_from_json_str Successful")
+        XLOGGER.debug(
+            "PaginationLinksTest.test_PaginationLinks_from_json_str: Success")
 
 #pylint:disable=too-many-instance-attributes
 class PaginationTest(unittest.TestCase):
@@ -212,7 +220,7 @@ class PaginationTest(unittest.TestCase):
         XLOGGER.debug("PaginationTest.tearDown")
 
     def test_Pagination(self):
-        XLOGGER.debug("Start test_Pagination")
+        XLOGGER.debug("PaginationTest.test_Pagination: Start")
         obj = Pagination(self.count, self.data, self.links, self.total)
         self.assertIsInstance(obj, Pagination)
         self.assertEqual(obj.count, self.count)
@@ -232,10 +240,10 @@ class PaginationTest(unittest.TestCase):
                           'not a list', self.total)
         self.assertRaises(TypeError, Pagination, self.count, self.data,
                           self.links, 'not an int')
-        XLOGGER.debug("test_Pagination Successful")
+        XLOGGER.debug("PaginationTest.test_Pagination: Success")
 
     def test_Pagination_from_json_obj(self):
-        XLOGGER.debug("Start test_Pagination_from_json_obj")
+        XLOGGER.debug("PaginationTest.test_Pagination_from_json_obj: Start")
         json_obj = json.loads(self.pagi_json_str)
         obj = Pagination.from_json_obj(json_obj)
         self.assertIsInstance(obj, Pagination)
@@ -245,10 +253,10 @@ class PaginationTest(unittest.TestCase):
         self.assertEqual(obj.links.self, self.links.self)
         self.assertEqual(obj.links.next, self.links.next)
         self.assertEqual(obj.total, self.total)
-        XLOGGER.debug("test_Pagination_from_json_obj Successful")
+        XLOGGER.debug("PaginationTest.test_Pagination_from_json_obj: Success")
 
     def test_Pagination_from_json_str(self):
-        XLOGGER.debug("Start test_Pagination_from_json_str")
+        XLOGGER.debug("PaginationTest.test_Pagination_from_json_str: Start")
         obj = Pagination.from_json_str(self.pagi_json_str)
         self.assertIsInstance(obj, Pagination)
         self.assertEqual(obj.count, self.count)
@@ -261,7 +269,7 @@ class PaginationTest(unittest.TestCase):
         self.assertRaises(TypeError, Pagination.from_json_str, self.bad_json2)
         self.assertRaises(TypeError, Pagination.from_json_str, self.bad_json3)
         self.assertRaises(TypeError, Pagination.from_json_str, self.bad_json4)
-        XLOGGER.debug("test_Pagination_from_json_str Successful")
+        XLOGGER.debug("PaginationTest.test_Pagination_from_json_str: Success")
 
 class SelfLinkTest(unittest.TestCase):
     """Collection of unit tests cases for the SelfLink class
@@ -287,21 +295,21 @@ class SelfLinkTest(unittest.TestCase):
         XLOGGER.debug("test_SelfLink Successful")
 
     def test_SelfLink_from_json_obj(self):
-        XLOGGER.debug("Start test_SelfLink_from_json_obj")
+        XLOGGER.debug("SelfLinkTest.test_SelfLink_from_json_obj: Start")
         json_obj = json.loads(self.self_json_str)
         obj = SelfLink.from_json_obj(json_obj)
         self.assertIsInstance(obj, SelfLink)
         self.assertEqual(obj.self, self.self)
-        XLOGGER.debug("test_SelfLink_from_json_obj Successful")
+        XLOGGER.debug("SelfLinkTest.test_SelfLink_from_json_obj: Success")
 
     def test_SelfLink_from_json_str(self):
-        XLOGGER.debug("Start test_SelfLink_from_json_str")
+        XLOGGER.debug("SelfLinkTest.test_SelfLink_from_json_str: Start")
         obj = SelfLink.from_json_str(self.self_json_str)
         self.assertIsInstance(obj, SelfLink)
         self.assertEqual(obj.self, self.self)
         self.assertRaises(TypeError, SelfLink.from_json_str, self.bad_json1)
         self.assertRaises(TypeError, SelfLink.from_json_str, self.bad_json2)
-        XLOGGER.debug("test_SelfLink_from_json_str Successful")
+        XLOGGER.debug("SelfLinkTest.test_SelfLink_from_json_str: Success")
 
 class ReferenceByIdTest(unittest.TestCase):
     """Collection of unit tests cases for the ReferenceById class
@@ -311,31 +319,43 @@ class ReferenceByIdTest(unittest.TestCase):
         XLOGGER.debug("ReferenceByIdTest.setUp")
         self.id = "/api/xm/1/people/84a6dde7-82ad-4e64-9f4d-3b9001ad60de"
         self.id_json_str = ('{"id": "%s"}')%(self.id)
+        self.bad_json_str1 = "{}"
+        self.bad_json_str2 = '{"id": 0}'
 
     def tearDown(self):
         XLOGGER.debug("ReferenceByIdTest.tearDown")
 
     def test_ReferenceById(self):
-        XLOGGER.debug("Start test_ReferenceById")
+        XLOGGER.debug("ReferenceByIdTest.test_ReferenceById: Start")
         obj = ReferenceById(self.id)
         self.assertIsInstance(obj, ReferenceById)
         self.assertEqual(obj.id, self.id)
-        XLOGGER.debug("test_ReferenceById Successful")
+        self.assertRaises(TypeError, ReferenceById)
+        self.assertRaises(TypeError, ReferenceById, 0)
+        XLOGGER.debug("ReferenceByIdTest.test_ReferenceById: Success")
 
     def test_ReferenceById_from_json_obj(self):
-        XLOGGER.debug("Start test_ReferenceById_from_json_obj")
+        XLOGGER.debug(
+            "ReferenceByIdTest.test_ReferenceById_from_json_obj: Start")
         json_obj = json.loads(self.id_json_str)
         obj = ReferenceById.from_json_obj(json_obj)
         self.assertIsInstance(obj, ReferenceById)
         self.assertEqual(obj.id, self.id)
-        XLOGGER.debug("test_ReferenceById_from_json_obj Successful")
+        XLOGGER.debug(
+            "ReferenceByIdTest.test_ReferenceById_from_json_obj: Success")
 
     def test_ReferenceById_from_json_str(self):
-        XLOGGER.debug("Start test_ReferenceById_from_json_str")
+        XLOGGER.debug(
+            "ReferenceByIdTest.test_ReferenceById_from_json_str: Start")
         obj = ReferenceById.from_json_str(self.id_json_str)
         self.assertIsInstance(obj, ReferenceById)
         self.assertEqual(obj.id, self.id)
-        XLOGGER.debug("test_ReferenceById_from_json_str Successful")
+        self.assertRaises(
+            TypeError, ReferenceById.from_json_str, self.bad_json_str1)
+        self.assertRaises(
+            TypeError, ReferenceById.from_json_str, self.bad_json_str2)
+        XLOGGER.debug(
+            "ReferenceByIdTest.test_ReferenceById_from_json_str: Success")
 
 class ReferenceByIdAndSelfLinkTest(unittest.TestCase):
     """Collection of unit tests cases for the ReferenceByIdAndSelfLink class
@@ -351,37 +371,70 @@ class ReferenceByIdAndSelfLinkTest(unittest.TestCase):
         self.id_json_str = (
             '{"id": "%s", "links": %s}'
             )%(self.id, self.links_json_str)
+        self.bad_json_str1 = (
+            '{"id": "%s"}'
+            )%(self.id)
+        self.bad_json_str2 = (
+            '{"links": %s}'
+            )%(self.links_json_str)
+        self.bad_json_str3 = (
+            '{"id": 0, "links": %s}'
+            )%(self.links_json_str)
+        self.bad_json_str4 = (
+            '{"id": "%s", "links": 0}'
+            )%(self.id)
 
     def tearDown(self):
         XLOGGER.debug("ReferenceByIdAndSelfLinkTest.tearDown")
 
     def test_ReferenceByIdAndSelfLink(self):
-        XLOGGER.debug("Start test_ReferenceByIdAndSelfLink")
+        XLOGGER.debug(
+            "ReferenceByIdAndSelfLinkTest.test_ReferenceByIdAndSelfLink: Start")
         obj = ReferenceByIdAndSelfLink(self.id, self.links)
         self.assertIsInstance(obj, ReferenceByIdAndSelfLink)
         self.assertEqual(obj.id, self.id)
         self.assertIsInstance(obj.links, SelfLink)
         self.assertEqual(obj.links, self.links)
-        XLOGGER.debug("test_ReferenceByIdAndSelfLink Successful")
+        self.assertRaises(TypeError, ReferenceByIdAndSelfLink, self.id)
+        self.assertRaises(TypeError, ReferenceByIdAndSelfLink, 0,  self.links)
+        self.assertRaises(TypeError, ReferenceByIdAndSelfLink, self.id, 0)
+        XLOGGER.debug(
+            "ReferenceByIdAndSelfLinkTest.test_ReferenceByIdAndSelfLink: Succe")
 
     def test_ReferenceByIdAndSelfLink_from_json_obj(self):
-        XLOGGER.debug("Start test_ReferenceByIdAndSelfLink_from_json_obj")
+        XLOGGER.debug(
+            "ReferenceByIdAndSelfLinkTest."
+            "test_ReferenceByIdAndSelfLink_from_json_obj: Start")
         json_obj = json.loads(self.id_json_str)
         obj = ReferenceByIdAndSelfLink.from_json_obj(json_obj)
         self.assertIsInstance(obj, ReferenceByIdAndSelfLink)
         self.assertEqual(obj.id, self.id)
         self.assertIsInstance(obj.links, SelfLink)
         self.assertEqual(obj.links.self, self.links.self)
-        XLOGGER.debug("test_ReferenceByIdAndSelfLink_from_json_obj Successful")
+        XLOGGER.debug(
+            "ReferenceByIdAndSelfLinkTest."
+            "test_ReferenceByIdAndSelfLink_from_json_obj: Success")
 
     def test_ReferenceByIdAndSelfLink_from_json_str(self):
-        XLOGGER.debug("Start test_ReferenceByIdAndSelfLink_from_json_str")
+        XLOGGER.debug(
+            "ReferenceByIdAndSelfLinkTest."
+            "test_ReferenceByIdAndSelfLink_from_json_str: Start")
         obj = ReferenceByIdAndSelfLink.from_json_str(self.id_json_str)
         self.assertIsInstance(obj, ReferenceByIdAndSelfLink)
         self.assertEqual(obj.id, self.id)
         self.assertIsInstance(obj.links, SelfLink)
         self.assertEqual(obj.links.self, self.links.self)
-        XLOGGER.debug("test_ReferenceByIdAndSelfLink_from_json_str Successful")
+        self.assertRaises(TypeError, ReferenceByIdAndSelfLink.from_json_str,
+            self.bad_json_str1)
+        self.assertRaises(TypeError, ReferenceByIdAndSelfLink.from_json_str,
+            self.bad_json_str2)
+        self.assertRaises(TypeError, ReferenceByIdAndSelfLink.from_json_str,
+            self.bad_json_str3)
+        self.assertRaises(TypeError, ReferenceByIdAndSelfLink.from_json_str,
+            self.bad_json_str4)
+        XLOGGER.debug(
+            "ReferenceByIdAndSelfLinkTest."
+            "test_ReferenceByIdAndSelfLink_from_json_str: Success")
 
 if __name__ == "__main__":
     #import sys;sys.argv = ['', 'Test.testName']

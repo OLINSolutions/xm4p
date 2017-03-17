@@ -12,13 +12,17 @@ Reference:
    http://google.github.io/styleguide/pyguide.html
 """
 
+from enum import Enum
 import json
+import logging
 
 from xmatters import XmattersBase
 from xmatters import SelfLink
 from xmatters import ReferenceByIdAndSelfLink
 from xmatters import Pagination
 from xmatters import PaginationLinks
+
+LOGGER = logging.getLogger('xlogger')
 
 class RecipientPointer(XmattersBase):
     """xmatters RecipientPointer representation
@@ -44,12 +48,12 @@ class RecipientPointer(XmattersBase):
             “DEVICE”
     """
     _arg_names = ['id', '*recipient_type']
-    _arg_names = ['id', 'recipient_type']
+    _attr_names = ['id', 'recipient_type']
     _json_names = ['id', 'recipientType']
     _attr_types = [str, str]
 
 
-class PersonReference(object):
+class PersonReference(XmattersBase):
     """xmatters PersonReference representation
 
     Refers to a person in xmatters.
@@ -58,7 +62,7 @@ class PersonReference(object):
         https://help.xmatters.com/xmAPI/index.html#person-reference-object
 
     Args:
-        ref_id (str): The unique identifier of the person.
+        id (str): The unique identifier of the person.
         target_name (str): The user id of the person.
         links (:obj:`SelfLink`): A link that can be used to retrieve the person
             using this API.
@@ -69,46 +73,27 @@ class PersonReference(object):
         links (:obj:`SelfLink`): A link that can be used to retrieve the person
             using this API.
     """
+    _arg_names = _attr_names = ['id', 'target_name', 'links']
+    _json_names = ['id', 'targetName', 'links']
+    _attr_types = [str, str, SelfLink]
 
-    @classmethod
-    def from_json_obj(cls, json_self: object):
-        """Build an PersonReference instance from a JSON object
+class RecipientType(Enum):
+    """The type of a Recipient object"""
+    GROUP = "GROUP"
+    PEOPLE = "PEOPLE"
+    DEVICE = "DEVICE"
+    DYNAMIC_TEAM = "DYNAMIC_TEAM"
 
-        Args:
-            cls (:class:`PersonReference`): Class to instantiate.
-            json_self (:obj:`JSON`): JSON object of a PersonReference.
+class RecipientStatus(Enum):
+    """The status of a Recipient object
 
-        Returns:
-            PersonReference: An instance populated with json_self.
-        """
-        new_obj = cls(
-            json_self['id'] if 'id' in json_self else None,
-            json_self['targetName'] if 'targetName' in json_self else None,
-            (SelfLink.from_json_obj(json_self['links'])
-             if 'links' in json_self else SelfLink()))
-        return new_obj
+    Whether the recipient is active. Inactive recipients do not receive
+    notifications. Use one of the following values.
+    """
+    ACTIVE = "ACTIVE"
+    INACTIVE = "INACTIVE"
 
-    @classmethod
-    def from_json_str(cls, json_self: str):
-        """Build an PersonReference instance from a JSON payload string
-
-        Args:
-            cls (:class:`PersonReference`): Class to instantiate.
-            json_self (:str:`JSON`): JSON string of a PersonReference.
-
-        Returns:
-            PersonReference: An instance populated with json_self.
-        """
-        obj = json.loads(json_self)
-        return cls.from_json_obj(obj)
-
-    def __init__(self, ref_id: str,
-                 target_name: str, links: SelfLink):
-        self.id: str = ref_id
-        self.target_name: str = target_name
-        self.links: SelfLink = links
-
-class Recipient(object):
+class Recipient(XmattersBase):
     """xmatters Recipient representation
 
     A recipient is a user, group, device or dynamic team in xmatters that can
@@ -119,27 +104,21 @@ class Recipient(object):
         https://help.xmatters.com/xmAPI/index.html#recipient-object
 
     Args:
-        ref_id (str): A unique id that represents the recipient.
+        id (str): A unique id that represents the recipient.
         target_name (str): The common name of the recipient.
-        receipient_type (str): The type of this object. Values include:
-            “GROUP”
-            “PEOPLE”
-            “DEVICE”
-            “DYNAMIC_TEAM”
-        status (str): Whether the recipient is active. Inactive recipients do
-            not receive notifications. Use one of the following values:
-                “ACTIVE”
-                “INACTIVE”
-            Note: this field is not included with dynamic teams because they
-            are always active.
-        external_key (str, optional): Ids a resource in an external system.
-        externally_owned (bool, optional): True if the object is managed by an
+        receipient_type (:Enum:`RecipientType`): The type of this object.
+        externally_owned (bool): True if the object is managed by an
             external system. False by default.
             A field is externally owned when it is managed by an external
             system. Externally-owned objects cannot be deleted in the xmatters
             user interface by most users.
+        external_key (str, optional): Ids a resource in an external system.
         locked (:obj:`list` of :obj:`str`, optional): A list of fields that
             cannot be modified in the xmatters user interface.
+        status (:Enum:`RecipientStatus`, optional): Whether the recipient is
+            active. Inactive recipients do not receive notifications.
+            Note: this field is not included with dynamic teams because they
+            are always active.
         links (:obj:`SelfLink`, optional): A link that can be used to access the
             object from within the API. This link is not included with Dynamic
             Team Recipients because they cannot yet be directly manipulated with
@@ -148,17 +127,7 @@ class Recipient(object):
     Attributes:
         id (str): A unique identifier that represents the recipient.
         target_name (str): The common name of the recipient.
-        receipient_type (str): The type of this object. Values include:
-            “GROUP”
-            “PEOPLE”
-            “DEVICE”
-            “DYNAMIC_TEAM”
-        status (str): Whether the recipient is active. Inactive recipients do
-            not receive notifications. Use one of the following values:
-                “ACTIVE”
-                “INACTIVE”
-            Note: this field is not included with dynamic teams because they
-            are always active.
+        receipient_type (:Enum:`RecipientType`): The type of this object.
         external_key (str): Identifies a resource in an external system.
         externally_owned (bool): True if the object is managed by an external
             system. False by default.
@@ -167,73 +136,28 @@ class Recipient(object):
             user interface by most users.
         locked (:obj:`list` of :obj:`str`): A list of fields that cannot be
             modified in the xmatters user interface.
+        status (:Enum:`RecipientStatus`): Whether the recipient is active.
+            Inactive recipients do not receive notifications.
+            Note: this field is not included with dynamic teams because they
+            are always active.
         links (:obj:`SelfLink`): A link that can be used to access the object
             from within the API. This link is not included with Dynamic Team
             Recipients because they cannot yet be directly manipulated with
             this API.
     """
+    _arg_names = [
+        'id', 'target_name', 'recipient_type', 'externally_owned',
+        '*external_key', '*locked', '*status', '*links']
+    _attr_names = [
+        'id', 'target_name', 'recipient_type', 'externally_owned',
+        'external_key', 'locked', 'status', 'links']
+    _json_names = [
+        'id', 'targetName', 'recipientType', 'externallyOwned',
+        'externalKey', 'locked', 'status', 'links']
+    _attr_types = [
+        str, str, RecipientType, bool, str, list, RecipientStatus,
+        SelfLink]
 
-    @staticmethod
-    def _init_from_json_obj(new_obj, json_self: object):
-        """Common initializer converting json object to a Recipient"""
-        new_obj.id = json_self['id'] if 'id' in json_self else None
-        new_obj.target_name = (
-            json_self['targetName'] if 'targetName' in json_self else None)
-        new_obj.recipient_type = (
-            json_self['recipientType']
-            if 'recipientType' in json_self else None)
-        new_obj.status = json_self['status'] if 'status' in json_self else None
-        new_obj.external_key = (
-            json_self['externalKey'] if 'externalKey' in json_self else None)
-        new_obj.externally_owned = (
-            json_self['externallyOwned']
-            if 'externallyOwned' in json_self else False)
-        new_obj.locked = json_self['locked'] if 'locked' in json_self else []
-        new_obj.links = (
-            SelfLink.from_json_obj(json_self['links'])
-            if 'links' in json_self else SelfLink())
-
-    @classmethod
-    def from_json_obj(cls, json_self: object):
-        """Build an Recipient instance from a JSON object
-
-        Args:
-            cls (:class:`Recipient`): Class to instantiate.
-            json_self (:obj:`JSON`): JSON object of a Recipient.
-
-        Returns:
-            Recipient: An instance populated with json_self.
-        """
-        new_obj = cls()
-        cls._init_from_json_obj(new_obj, json_self)
-        return new_obj
-
-    @classmethod
-    def from_json_str(cls, json_self: str):
-        """Build an Recipient instance from a JSON payload string
-
-        Args:
-            cls (:class:`Recipient`): Class to instantiate.
-            json_self (:str:`JSON`): JSON string of a Recipient.
-
-        Returns:
-            Recipient: An instance populated with json_self.
-        """
-        obj = json.loads(json_self)
-        return cls.from_json_obj(obj)
-
-    def __init__(self, ref_id: str, target_name: str, recipient_type: str,
-                 status: str, external_key: str = None,
-                 externally_owned: bool = None, locked: [str] = [],
-                 links: SelfLink = None):
-        self.id: str = ref_id
-        self.target_name: str = target_name
-        self.recipient_type: str = recipient_type
-        self.external_key: str = external_key
-        self.externally_owned: bool = externally_owned
-        self.locked: [str] = locked
-        self.status: str = status
-        self.links: SelfLink = links
 
 class DynamicTeam(Recipient):
     """xmatters DynamicTeam representation

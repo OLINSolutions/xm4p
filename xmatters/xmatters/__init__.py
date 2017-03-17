@@ -8,4 +8,6 @@ from xmatters.common import ReferenceById
 from xmatters.common import ReferenceByIdAndSelfLink
 from xmatters.recipients import RecipientPointer
 from xmatters.recipients import PersonReference
+from xmatters.recipients import RecipientType
+from xmatters.recipients import RecipientStatus
 from xmatters.recipients import Recipient

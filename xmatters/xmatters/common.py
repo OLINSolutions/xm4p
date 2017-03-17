@@ -10,6 +10,7 @@ Reference:
    http://google.github.io/styleguide/pyguide.html
 """
 
+from enum import Enum
 import json
 import logging
 
@@ -72,14 +73,21 @@ class XmattersBase(object):
     def _setattr(self, name, value):
         """Convert dictionaries to their class instance based on typedict"""
         if isinstance(value, dict):
-            print('XmattersBase._setattr - value is instance of dict')
             new_type = self.typedict[name]
-            print('XmattersBase._setattr - new_type: %s'%(new_type.__name__))
             value = new_type(value)
-            print('XmattersBase._setattr - value(%s): %s'%(
-                value.__class__.__name__, str(value)))
+            LOGGER.debug(
+                ("XmattersBase._setattr - value is instance of dict. "
+                 "new_type: %s, value(%s): %s"),
+                new_type.__name__, value.__class__.__name__, str(value))
+        elif isinstance(self.typedict[name], Enum):
+            new_type = self.typedict[name]
+            value = new_type(value)
+            LOGGER.debug(
+                ("XmattersBase._setattr - value is instance of Enum. "
+                 "new_type: %s, value(%s): %s"),
+                new_type.__name__, value.__class__.__name__, str(value))
         else:
-            print('XmattersBase._setattr - value IS NOT instance of dict')
+            LOGGER.debug('XmattersBase._setattr: value IS NOT instance of dict')
         setattr(self, name, value)
 
     def _process_arg_names(self, names:list): #pylint:disable=no-self-use
@@ -107,15 +115,19 @@ class XmattersBase(object):
         attr_type = self.typedict[attr]
         value_type = type(value)
         is_xtype = issubclass(attr_type, XmattersBase) and value_type is dict
-        return is_xtype or value_type is attr_type
+        is_enum = issubclass(attr_type, Enum) and value_type is str
+        return is_xtype or is_enum or value_type is attr_type
 
     def __debug_input_args(self, args): #pylint:disable=no-self-use
         if args:
-            print('type(args): %s = %s'%(str(type(args)), str(args)))
-            print('args(%d): %s:%s'%(
+            LOGGER.debug(
+                "XmattersBase.__debug_input_args type(args): %s = %s",
+                str(type(args)), str(args))
+            LOGGER.debug(
+                "XmattersBase.__debug_input_args args(%d): %s:%s",
                 len(args) if args is not None else 0,
                 str(type(args[0]) if args is not None else 'None'),
-                str(args[0]) if args is not None else 'None'))
+                str(args[0]) if args is not None else 'None')
 
     def __process_dictionary_args(self, json_names, args):
         for dictionary in args:
@@ -123,27 +135,43 @@ class XmattersBase(object):
                 if key in json_names:
                     if not self._is_proper_type(self.jsondict[key],
                                                 dictionary[key]):
+                        LOGGER.debug(
+                            ("XmattersBase.__process_dictionary_args TypeError:"
+                             " Initializing class %s. JSON Attribute %s "
+                             "should be a %s, but a %s was found"),
+                            self.__class__.__name__, key,
+                            str(self.typedict[self.jsondict[key]]),
+                            str(type(dictionary[key])))
                         raise TypeError((
                             "Initializing class %s. JSON Attribute %s "
                             "should be a %s, but a %s was found")%(
                             self.__class__.__name__, key,
                             str(self.typedict[self.jsondict[key]]),
                             str(type(dictionary[key]))))
-                    print('Using args as dict to set %s from %s to %s'%(
-                        self.jsondict[key], key, dictionary[key]))
+                    LOGGER.debug(
+                        ("XmattersBase.__process_dictionary_argsUsing args as "
+                         "dict to set %s from %s to %s"),
+                        self.jsondict[key], key, dictionary[key])
                     self._setattr(self.jsondict[key], dictionary[key])
 
     def __process_positional_args(self, attr_names, attr_types, args):
         key = 0
         for value in args:
             if not isinstance(value,attr_types[key]):
+                LOGGER.debug(("XmattersBase.__process_positional_args TypeError"
+                    ": Initializing class %s. Attribute at position %d (%s) "
+                    "should be a %s, but a %s was found"),
+                    self.__class__.__name__, key, attr_names[key],
+                    str(attr_types[key]), str(type(value)))
                 raise TypeError((
                     "Initializing class %s. Attribute at position %d (%s) "
                     "should be a %s, but a %s was found")%(
                     self.__class__.__name__, key, attr_names[key],
                     str(attr_types[key]), str(type(value))))
-            print('Using positional arg %d to set %s to %s'%(
-                key, attr_names[key], str(value)))
+            LOGGER.debug(
+                ("XmattersBase.__process_positional_args Using positional arg "
+                 "%d to set %s to %s"),
+                key, attr_names[key], str(value))
             self._setattr(attr_names[key], value)
             key += 1
 
@@ -152,14 +180,22 @@ class XmattersBase(object):
             if key in arg_names:
                 attr_name = self.argdict[key]
                 if not isinstance(kwargs[key], self.typedict[attr_name]):
+                    LOGGER.debug(("XmattersBase.__process_keyword_args - "
+                        "TypeError: Initializing class %s. Keyword argument "
+                        "'%s' should be a %s, but a %s was found"),
+                        self.__class__.__name__, key,
+                        str(self.typedict[attr_name]),
+                        str(type(kwargs[key])))
                     raise TypeError((
                         "Initializing class %s. Keyword argument '%s' "
                         "should be a %s, but a %s was found")%(
                         self.__class__.__name__, key,
                         str(self.typedict[attr_name]),
                         str(type(kwargs[key]))))
-                print('Using kwargs to set %s from %s to %s'%(
-                    self.argdict[key], key, kwargs[key]))
+                LOGGER.debug(
+                    ("XmattersBase.__process_keyword_args - "
+                     "Using kwargs to set %s from %s to %s"),
+                    self.argdict[key], key, kwargs[key])
                 self._setattr(self.argdict[key], kwargs[key])
 
     def __confirm_required_args(self, arg_names):
@@ -170,6 +206,10 @@ class XmattersBase(object):
                 if getattr(self, self.argdict[key]) is None:
                     missing_args.append(self.argdict[key])
         if missing_args:
+            LOGGER.debug(
+                ("XmattersBase.__confirm_required_args - "
+                 "TypeError: Initializing class %s. Missing arguments: %s."),
+                self.__class__.__name__, ",".join(missing_args))
             raise TypeError("Initializing class %s. Missing arguments: %s."%(
                 self.__class__.__name__, ",".join(missing_args)))
 
@@ -216,7 +256,7 @@ class XmattersBase(object):
         self.__debug_input_args(args)
         # Process positional args
         numkw = len(kwargs) if kwargs else 0
-        print('numkw: %d'%numkw)
+        if numkw > 0: LOGGER.debug('XmattersBase.__init__ - numkw: %d', numkw)
         # First check if arguments come in as a dictionary
         if args and len(args) == 1 and isinstance(args[0], dict):
             self.__process_dictionary_args(json_names, args)
