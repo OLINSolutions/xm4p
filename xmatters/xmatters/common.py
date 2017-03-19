@@ -79,7 +79,7 @@ class XmattersBase(object):
                 ("XmattersBase._setattr - value is instance of dict. "
                  "new_type: %s, value(%s): %s"),
                 new_type.__name__, value.__class__.__name__, str(value))
-        elif isinstance(self.typedict[name], Enum):
+        elif issubclass(self.typedict[name], Enum):
             new_type = self.typedict[name]
             value = new_type(value)
             LOGGER.debug(
@@ -110,14 +110,6 @@ class XmattersBase(object):
         setattr(self, '__type_dict', dict(zip(attr_names, attr_types)))
         setattr(self, '__json_dict', dict(zip(json_names, attr_names)))
 
-    def _is_proper_type(self, attr, value) -> bool:
-        """bool: True if value is the proper type expected by attr"""
-        attr_type = self.typedict[attr]
-        value_type = type(value)
-        is_xtype = issubclass(attr_type, XmattersBase) and value_type is dict
-        is_enum = issubclass(attr_type, Enum) and value_type is str
-        return is_xtype or is_enum or value_type is attr_type
-
     def __debug_input_args(self, args): #pylint:disable=no-self-use
         if args:
             LOGGER.debug(
@@ -128,6 +120,14 @@ class XmattersBase(object):
                 len(args) if args is not None else 0,
                 str(type(args[0]) if args is not None else 'None'),
                 str(args[0]) if args is not None else 'None')
+
+    def _is_proper_type(self, attr, value) -> bool:
+        """bool: True if value is the proper type expected by attr"""
+        attr_type = self.typedict[attr]
+        value_type = type(value)
+        is_xtype = issubclass(attr_type, XmattersBase) and value_type is dict
+        is_enum = issubclass(attr_type, Enum) and value_type is str
+        return is_xtype or is_enum or value_type is attr_type
 
     def __process_dictionary_args(self, json_names, args):
         for dictionary in args:
@@ -149,8 +149,8 @@ class XmattersBase(object):
                             str(self.typedict[self.jsondict[key]]),
                             str(type(dictionary[key]))))
                     LOGGER.debug(
-                        ("XmattersBase.__process_dictionary_argsUsing args as "
-                         "dict to set %s from %s to %s"),
+                        ("XmattersBase.__process_dictionary_args Using args as"
+                         " dict to set %s from %s to %s"),
                         self.jsondict[key], key, dictionary[key])
                     self._setattr(self.jsondict[key], dictionary[key])
 

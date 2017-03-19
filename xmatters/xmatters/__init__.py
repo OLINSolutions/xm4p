@@ -11,3 +11,4 @@ from xmatters.recipients import PersonReference
 from xmatters.recipients import RecipientType
 from xmatters.recipients import RecipientStatus
 from xmatters.recipients import Recipient
+from xmatters.recipients import DynamicTeam

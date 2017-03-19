@@ -128,12 +128,12 @@ class Recipient(XmattersBase):
         id (str): A unique identifier that represents the recipient.
         target_name (str): The common name of the recipient.
         receipient_type (:Enum:`RecipientType`): The type of this object.
-        external_key (str): Identifies a resource in an external system.
         externally_owned (bool): True if the object is managed by an external
             system. False by default.
             A field is externally owned when it is managed by an external
             system. Externally-owned objects cannot be deleted in the xmatters
             user interface by most users.
+        external_key (str): Identifies a resource in an external system.
         locked (:obj:`list` of :obj:`str`): A list of fields that cannot be
             modified in the xmatters user interface.
         status (:Enum:`RecipientStatus`): Whether the recipient is active.
@@ -145,18 +145,21 @@ class Recipient(XmattersBase):
             Recipients because they cannot yet be directly manipulated with
             this API.
     """
-    _arg_names = [
-        'id', 'target_name', 'recipient_type', 'externally_owned',
-        '*external_key', '*locked', '*status', '*links']
-    _attr_names = [
-        'id', 'target_name', 'recipient_type', 'externally_owned',
-        'external_key', 'locked', 'status', 'links']
-    _json_names = [
-        'id', 'targetName', 'recipientType', 'externallyOwned',
-        'externalKey', 'locked', 'status', 'links']
-    _attr_types = [
-        str, str, RecipientType, bool, str, list, RecipientStatus,
-        SelfLink]
+    _common_arg_names = [
+        'id', 'target_name', 'recipient_type', 'externally_owned']
+    _common_arg_opt_names = ['*external_key', '*locked', '*status', '*links']
+    _arg_names = _common_arg_names + _common_arg_opt_names
+    _common_attr_names = [
+        'id', 'target_name', 'recipient_type', 'externally_owned']
+    _common_attr_opt_names = ['external_key', 'locked', 'status', 'links']
+    _attr_names = _common_attr_names + _common_attr_opt_names
+    _common_json_names = [
+        'id', 'targetName', 'recipientType', 'externallyOwned']
+    _common_json_opt_names = ['externalKey', 'locked', 'status', 'links']
+    _json_names = _common_json_names + _common_json_opt_names
+    _common_attr_types = [str, str, RecipientType, bool]
+    _common_attr_opt_types = [str, list, RecipientStatus, SelfLink]
+    _attr_types =_common_attr_types + _common_attr_opt_types
 
 
 class DynamicTeam(Recipient):
@@ -177,6 +180,27 @@ class DynamicTeam(Recipient):
         https://help.xmatters.com/xmAPI/index.html#dynamic-team-object
 
     Args:
+        id (str): A unique id that represents the recipient.
+        target_name (str): The common name of the recipient.
+        receipient_type (:Enum:`RecipientType`): The type of this object.
+        externally_owned (bool): True if the object is managed by an
+            external system. False by default.
+            A field is externally owned when it is managed by an external
+            system. Externally-owned objects cannot be deleted in the xmatters
+            user interface by most users.
+        use_emergency_device (bool): True if the dynamic team is configured to
+            contact failsafe devices when no other devices are configured to
+            receive notifications.
+        external_key (str, optional): Ids a resource in an external system.
+        locked (:obj:`list` of :obj:`str`, optional): A list of fields that
+            cannot be modified in the xmatters user interface.
+        status (:Enum:`RecipientStatus`, optional): Whether the recipient is
+            active. Inactive recipients do not receive notifications.
+            Dynamic Teams are always active.
+        links (:obj:`SelfLink`, optional): A link that can be used to access the
+            object from within the API. This link is not included with Dynamic
+            Team Recipients because they cannot yet be directly manipulated with
+            this API.
 
     Attribute:
         id (str): A unique identifier that represents the dynamic team.
@@ -187,52 +211,56 @@ class DynamicTeam(Recipient):
             A field is externally owned when it is managed by an external
             system. Externally-owned objects cannot be deleted in the xmatters
             user interface by most users.
+        external_key (str): Identifies a resource in an external system.
         use_emergency_device (bool): True if the dynamic team is configured to
             contact failsafe devices when no other devices are configured to
             receive notifications.
+        locked (:obj:`list` of :obj:`str`): A list of fields that cannot be
+            modified in the xmatters user interface.
+        status (:Enum:`RecipientStatus`): Whether the recipient is active.
+            Inactive recipients do not receive notifications.
+            Dynamic Teams are always active.
+        links (:obj:`SelfLink`): A link that can be used to access the object
+            from within the API. 
+            Not included with Dynamic Team Recipients because they cannot yet
+            be directly manipulated wih this API.
     """
+    _arg_names = (
+        Recipient._common_arg_names + ['use_emergency_device'] +
+        Recipient._common_arg_opt_names)
+    _attr_names = (
+        Recipient._common_attr_names + ['use_emergency_device'] +
+        Recipient._common_attr_opt_names)
+    _json_names = (
+        Recipient._common_json_names + ['useEmergencyDevice'] +
+        Recipient._common_json_opt_names)
+    _attr_types = (
+        Recipient._common_attr_types + [bool] +
+        Recipient._common_attr_opt_types)
 
-    @classmethod
-    def from_json_obj(cls, json_self: object):
-        """Build a DynamicTeam instance from a JSON object
-
-        Args:
-            cls (:class:`DynamicTeam`): Class to instantiate.
-            json_self (:obj:`JSON`): JSON object of a DynamicTeam.
-
-        Returns:
-            DynamicTeam: An instance populated with json_self.
-        """
-        new_obj = cls()
-        Recipient._init_from_json_obj(new_obj, json_self)
-        new_obj.recipient_type = "DYNAMIC_TEAM"
-        new_obj.status = "ACTIVE"
-        new_obj.links = SelfLink()
-        new_obj.use_emergency_device = (
-            json_self['useEmergencyDevice']
-            if 'useEmergencyDevice' in json_self else None)
-        return new_obj
-
-    @classmethod
-    def from_json_str(cls, json_self: str):
-        """Build a DynamicTeam instance from a JSON payload string
+    def __init__(self, *args, **kwargs):
+        """Creates and initializes an instance.
 
         Args:
-            cls (:class:`DynamicTeam`): Class to instantiate.
-            json_self (:str:`JSON`): JSON string of a DynamicTeam.
+            *args
+                Variable length argument list.
+                Must follow the order of types.
+            **kwargs
+                Arbitrary keyword arguments.
+                Must follow the appropriate type for the named arg
 
         Returns:
-            DynamicTeam: An instance populated with json_self.
-        """
-        obj = json.loads(json_self)
-        return cls.from_json_obj(obj)
+            object: An initialized instance
 
-    def __init__(self):
-        super().__init__()
-        self.recipient_type: str = "DYNAMIC_TEAM"
-        self.status: str = "ACTIVE"
-        self.links: SelfLink = SelfLink()
-        self.use_emergency_device: bool = None
+        Raises:
+            TypeError: The type of an argument value is not correct, or
+                a required argument is missing
+        """
+        super().__init__(*args, **kwargs)
+        if self.recipient_type is None:
+            self.recipient_type = RecipientType.DYNAMIC_TEAM
+        if self.status is None:
+            self.status = RecipientStatus.ACTIVE
 
 class Group(Recipient):
     """xmatters Group representation
