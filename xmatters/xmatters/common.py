@@ -13,8 +13,94 @@ Reference:
 from enum import Enum
 import json
 import logging
+import types
 
 LOGGER = logging.getLogger('xlogger')
+
+class XmattersList(list):
+    """xMatters specific list representation
+
+    Defines a Python list that also adds a member_type element to hold the
+    XmattersBase subclass that represents the type of member
+
+    Attributes:
+        base_class (:obj:`class`): Type of XmatterBase subclass held in list
+    """
+
+    base_class = None
+
+    def __init__(self, *args):
+        """Creates and initializes an instance.
+
+        Args:
+            *args
+                See https://docs.python.org/3/library/stdtypes.html#list
+                Optional iterable
+
+        Returns:
+            list: An initialized and possibly empty list
+
+        Raises:
+            TypeError: base_class is not a sub-class of XmattersBase
+        """
+        bcname = self.base_class.__name__ if self.base_class else "None"
+        LOGGER.debug(
+            "XmattersList.__new__ - Class = %s, self.base_class = %s.",
+            self.__class__.__name__, bcname)
+        super().__init__(*args)
+        if not issubclass(self.base_class, XmattersBase):
+            raise TypeError((
+                "Initializing class XmattersList. base_class is a %s, "
+                "and not a subclass of XmattersBase")%(
+                bcname))
+
+    @classmethod
+    def from_json_obj(cls, json_self):
+        """Creates and initializes an XmattersList subclass.
+
+        Args:
+            cls (class): XmattersList subclass to instantiate.
+            json_self (:list: of :obj:`JSON`): JSON string containing an array
+                of instances of a JSON representation of cls.
+
+        Returns:
+            object: An instance of cls populated with json_self.
+        """
+        bcname = cls.base_class.__name__ if cls.base_class else "None"
+        LOGGER.debug(
+            ("XmattersList.from_json_obj - cls = %s, %s.base_class = %s, "
+             "json_self = %s."),
+            cls.__name__, cls.__name__, bcname, json_self)
+        bc_default = [
+            cls.base_class(jobj) #pylint:disable=not-callable
+            for jobj in json_self]
+        new_obj = cls(bc_default)
+        LOGGER.debug(
+            "XmattersList.from_json_obj - Created new objects: %s",
+            str(new_obj))
+        return new_obj
+
+    @classmethod
+    def from_json_str(cls, json_self: str):
+        """Creates and initializes an XmattersList subclass.
+
+        Args:
+            cls (class): XmattersList subclass to instantiate.
+            json_self (:str:`JSON`): JSON string containing an array
+                of instances of a JSON representation of base_class
+
+        Returns:
+            object: An instance of cls populated with json_self.
+        """
+        bcname = cls.base_class.__name__ if cls.base_class else "None"
+        LOGGER.debug(
+            ("XmattersList.from_json_str - cls = %s, %s.base_class = %s, "
+             "json_self = %s."),
+            cls.__name__, cls.__name__, bcname, json_self)
+        objs = json.loads(json_self)
+        LOGGER.debug(
+            "XmattersList.from_json_str - created objs: %s", str(objs))
+        return cls.from_json_obj(objs)
 
 class XmattersBase(object):
     """xMatters object representation
@@ -72,20 +158,33 @@ class XmattersBase(object):
 
     def _setattr(self, name, value):
         """Convert dictionaries to their class instance based on typedict"""
-        if isinstance(value, dict):
+        if issubclass(self.typedict[name], Enum):
             new_type = self.typedict[name]
             value = new_type(value)
             LOGGER.debug(
-                ("XmattersBase._setattr - value is instance of dict. "
+                ("XmattersBase._setattr - value is subclass of Enum. "
                  "new_type: %s, value(%s): %s"),
                 new_type.__name__, value.__class__.__name__, str(value))
-        elif issubclass(self.typedict[name], Enum):
+        elif issubclass(self.typedict[name], XmattersList):
             new_type = self.typedict[name]
-            value = new_type(value)
+            value = new_type.from_json_str(value)
             LOGGER.debug(
-                ("XmattersBase._setattr - value is instance of Enum. "
+                ("XmattersBase._setattr - value is subclass of XmattersList. "
                  "new_type: %s, value(%s): %s"),
                 new_type.__name__, value.__class__.__name__, str(value))
+        elif isinstance(value, dict):
+            if not isinstance(self.typedict[name], dict):
+                new_type = self.typedict[name]
+                value = new_type(value)
+                LOGGER.debug(
+                    ("XmattersBase._setattr - value is instance of dict. "
+                     "new_type: %s, value(%s): %s"),
+                    new_type.__name__, value.__class__.__name__, str(value))
+            else:
+                LOGGER.debug(
+                    ("XmattersBase._setattr - value and target type of dict. "
+                     "value(%s): %s"),
+                    value.__class__.__name__, str(value))
         else:
             LOGGER.debug('XmattersBase._setattr: value IS NOT instance of dict')
         setattr(self, name, value)
@@ -256,7 +355,8 @@ class XmattersBase(object):
         self.__debug_input_args(args)
         # Process positional args
         numkw = len(kwargs) if kwargs else 0
-        if numkw > 0: LOGGER.debug('XmattersBase.__init__ - numkw: %d', numkw)
+        if numkw > 0:
+            LOGGER.debug('XmattersBase.__init__ - numkw: %d', numkw)
         # First check if arguments come in as a dictionary
         if args and len(args) == 1 and isinstance(args[0], dict):
             self.__process_dictionary_args(json_names, args)
@@ -267,6 +367,26 @@ class XmattersBase(object):
         self.__process_keyword_args(arg_names, kwargs)
         # Final check for required arguments
         self.__confirm_required_args(arg_names)
+
+    def __eq__(self, other):
+        for key, value in self.__dict__.items():
+            if not key:
+                return NotImplemented
+
+            if (isinstance(value, types.FunctionType) or
+                    key.startswith("__")):
+                continue
+
+            if key not in other.__dict__:
+                return False
+
+            if other.__dict__[key] != value:
+                return False
+
+        return True
+
+    def __ne__(self, other):
+        return not self == other
 
     @classmethod
     def from_json_obj(cls, json_self: object):

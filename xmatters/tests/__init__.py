@@ -1,8 +1,10 @@
+"""Variables used by the test modules
+"""
 import logging
 import os
 import tempfile
 
-_log_dir = tempfile.gettempdir()
-_log_dir = '/tmp'
-_log_filename = _log_dir + os.sep + 'xlogger.log'
-_log_level = logging.DEBUG
+_LOG_DIR = tempfile.gettempdir()
+_LOG_DIR = '/tmp'
+_LOG_FILENAME = _LOG_DIR + os.sep + 'xlogger.log'
+_LOG_LEVEL = logging.DEBUG
