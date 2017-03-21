@@ -20,8 +20,8 @@ LOGGER = logging.getLogger('xlogger')
 class XmattersList(list):
     """xMatters specific list representation
 
-    Defines a Python list that also adds a member_type element to hold the
-    XmattersBase subclass that represents the type of member
+    Defines a Python list that also adds an attribute to hold the
+    XmattersBase subclass that represents the type of list element.
 
     Attributes:
         base_class (:obj:`class`): Type of XmatterBase subclass held in list
@@ -167,7 +167,7 @@ class XmattersBase(object):
                 new_type.__name__, value.__class__.__name__, str(value))
         elif issubclass(self.typedict[name], XmattersList):
             new_type = self.typedict[name]
-            value = new_type.from_json_str(value)
+            value = new_type.from_json_obj(value)
             LOGGER.debug(
                 ("XmattersBase._setattr - value is subclass of XmattersList. "
                  "new_type: %s, value(%s): %s"),
@@ -226,7 +226,8 @@ class XmattersBase(object):
         value_type = type(value)
         is_xtype = issubclass(attr_type, XmattersBase) and value_type is dict
         is_enum = issubclass(attr_type, Enum) and value_type is str
-        return is_xtype or is_enum or value_type is attr_type
+        is_list = issubclass(attr_type, list) and value_type is list
+        return is_xtype or is_enum or is_list or value_type is attr_type
 
     def __process_dictionary_args(self, json_names, args):
         for dictionary in args:

@@ -80,7 +80,7 @@ class PersonReference(XmattersBase):
 class RecipientType(Enum):
     """The type of a Recipient object"""
     GROUP = "GROUP"
-    PEOPLE = "PEOPLE"
+    PERSON = "PERSON"
     DEVICE = "DEVICE"
     DYNAMIC_TEAM = "DYNAMIC_TEAM"
 
@@ -381,7 +381,7 @@ class Role(XmattersBase):
         id (str): The unique identifier of the role.
         name (str): The name of the role.
     """
-    _arg_names = _attr_names = _json_names = ['id', 'role']
+    _arg_names = _attr_names = _json_names = ['id', 'name']
     _attr_types = [str, str]
 
 class RoleList(XmattersList):
@@ -403,18 +403,23 @@ class RolePagination(Pagination):
         https://help.xmatters.com/xmAPI/index.html#pagination-object
 
     Args:
+        count (int): The number of items in this page of results.
+        total (int): The total number of items in the result set.
+        data (:obj:`RoleList`): A list of Role objects.
+        links (:obj:`PaginationLinks`, optional): Links to the current,
+            previous, and next pages of results.
 
     Attributes:
         count (int): The number of items in this page of results.
+        total (int): The total number of items in the result set.
         data (:obj:`RoleList`): A list of Role objects.
         links (:obj:`PaginationLinks`): Links to the current, previous, and
             next pages of results.
-        total (int): The total number of items in the result set.
 
     """
-    _arg_names = _attr_names = _json_names = [
-        'count', 'data', 'links', 'total']
-    _attr_types = [int, RoleList, PaginationLinks, int]
+    _arg_names = ['count', 'total', 'data', '*links']
+    _attr_names = _json_names = ['count', 'total', 'data', 'links']
+    _attr_types = [int, int, RoleList, PaginationLinks]
 
 class Person(Recipient):
     """xmatters Person representation
@@ -441,15 +446,15 @@ class Person(Recipient):
             system. Externally-owned objects cannot be deleted in the xmatters
             user interface by most users.
         first_name (str): The first name of the person.
-        language (str): The person’s default language.
         last_name (str): The last name of the person.
-        site (:obj:`ReferenceByIdAndSelfLink`): A link to a resource that you
-            can use to find out information about the site to which the
-            person is assigned.
+        language (str): The person’s default language.
         timezone (str): The person’s time zone. Example: “US/Eastern”
         web_login (str): The identifier the person can use to log in to the
             xmatters user interface. This is often identical to the
             targetName value.
+        site (:obj:`ReferenceByIdAndSelfLink`): A link to a resource that you
+            can use to find out information about the site to which the
+            person is assigned.
         phone_login (str, optional): An access code that the person can use to
             identify themselves when they phone in to xMatters to retrieve
             messages.
@@ -480,8 +485,15 @@ class Person(Recipient):
             system. Externally-owned objects cannot be deleted in the xmatters
             user interface by most users.
         first_name (str): The first name of the person.
-        language (str): The person’s default language.
         last_name (str): The last name of the person.
+        language (str): The person’s default language.
+        timezone (str): The person’s time zone. Example: “US/Eastern”
+        web_login (str): The identifier the person can use to log in to the
+            xmatters user interface. This is often identical to the
+            targetName value.
+        site (:obj:`ReferenceByIdAndSelfLink`): A link to a resource that you
+            can use to find out information about the site to which the
+            person is assigned.
         phone_login (str): An access code that the person can use to identify
             themselves when they phone in to xmatters to retrieve messages.
         properties (dict): A list of the custom fields and attributes
@@ -489,13 +501,6 @@ class Person(Recipient):
         roles (:obj:`RolePagination`): A list of the user’s roles.
             This optional field is included when the request uses the
             ?embed=roles query parameter.
-        site (:obj:`ReferenceByIdAndSelfLink`): A link to a resource that you
-            can use to find out information about the site to which the
-            person is assigned.
-        timezone (str): The person’s time zone. Example: “US/Eastern”
-        web_login (str): The identifier the person can use to log in to the
-            xmatters user interface. This is often identical to the
-            targetName value.
         external_key (str): Identifies a resource in an external system.
         locked (:obj:`list` of :obj:`str`): A list of fields that cannot be
             modified in the xmatters user interface.
@@ -510,23 +515,23 @@ class Person(Recipient):
     """
     _arg_names = (
         Recipient._common_arg_names +
-        ['first_name', 'language', 'last_name', 'site', 'timezone',
-         'web_login', '*phone_login', '*properties', '*roles'] +
+        ['first_name', 'last_name', 'language', 'timezone', 'web_login',
+         'site', '*phone_login', '*properties', '*roles'] +
         Recipient._common_arg_opt_names)
     _attr_names = (
         Recipient._common_attr_names +
-        ['first_name', 'language', 'last_name', 'site', 'timezone',
-         'web_login', 'phone_login', 'properties', 'roles'] +
+        ['first_name', 'last_name', 'language', 'timezone', 'web_login',
+         'site', 'phone_login', 'properties', 'roles'] +
         Recipient._common_attr_opt_names)
     _json_names = (
         Recipient._common_json_names +
-       ['firstName', 'language', 'lastName', 'site', 'timezone', 'webLogin',
-        'phoneLogin', 'properties', 'roles'] +
+       ['firstName', 'lastName', 'language', 'timezone', 'webLogin',
+        'site', 'phoneLogin', 'properties', 'roles'] +
         Recipient._common_json_opt_names)
     _attr_types = (
         Recipient._common_attr_types +
-        [str, str, str, ReferenceByIdAndSelfLink, str, str, str,
-         dict, RolePagination] +
+        [str, str, str, str, str,
+         ReferenceByIdAndSelfLink, str, dict, RolePagination] +
         Recipient._common_attr_opt_types)
 
 def main():
