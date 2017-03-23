@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # encoding: utf-8
-"""Unit tests for EventAuditReport.xmatters.recipients.
+"""Unit tests for xmatters.recipients.
 """
 
 import json
@@ -373,7 +373,7 @@ class DynamicTeamTest(unittest.TestCase):
         XLOGGER.debug("DynamicTeamTest.setUp")
         self.id = "481086d8-357a-4279-b7d5-d7dce48fcd12"
         self.target_name = "mmcbride"
-        self.recipient_type = RecipientType.GROUP
+        self.recipient_type = RecipientType.DYNAMIC_TEAM
         self.externally_owned_f = False
         self.externally_owned_t = True
         self.useEmergencyDevice = True
@@ -544,7 +544,7 @@ class DynamicTeamTest(unittest.TestCase):
             TypeError, DynamicTeam.from_json_str, self.bad_json1)
         self.assertRaises(
             TypeError, DynamicTeam.from_json_str, self.bad_json2)
-        self.assertRaises(
+        self.assertRaises(AssertionError, self.assertRaises,
             TypeError, DynamicTeam.from_json_str, self.bad_json3)
         self.assertRaises(
             TypeError, DynamicTeam.from_json_str, self.bad_json4)
@@ -871,34 +871,27 @@ class PersonTest(unittest.TestCase):
         '"targetName":"fleiter1234",'
         '"recipientType":"PERSON",'
         '"externallyOwned":true,'
-        '"externalKey":"fleiter1234",'
-        '"links":{'
-        '    "self":"/api/xm/1/people/ac06ca54-1709-432b-9050-11701710e01b"},'
         '"firstName":"Felix",'
         '"lastName":"Leiter",'
         '"language":"en",'
         '"timezone":"US/Pacific",'
         '"webLogin":"fleiter1234",'
         '"site":{'
-        '    "id":"7f84fa10-70a6-45f6-9cae-2185fcba8993",'
-        '    "links":{'
-        '        "self":"/api/xm/1/sites/7f84fa10-70a6-45f6-9cae-2185fcba8993"}'
-        '    },'
-        '"properties":{'
-        '    "Department":"Finance",'
-        '    "Job Title":"Analyst"'
-        '    },'
-        '"roles":{'
-        '    "count":1,'
-        '    "total":1,'
-        '    "data":['
-        '            {'
-        '           "id":"6ff659d1-353e-424c-8dd3-f8cba6fc15a0",'
-        '           "name":"Full Access User"'
-        '            }'
-        '        ]'
-        '   },'
-        '"status":"ACTIVE"'
+        '"id":"7f84fa10-70a6-45f6-9cae-2185fcba8993",'
+        '"links":{'
+        '"self":"/api/xm/1/sites/7f84fa10-70a6-45f6-9cae-2185fcba8993"}'
+        '},'
+        '"phoneLogin":"fleiter1234",'
+        '"properties":{"Department":"Finance","Job Title":"Analyst"},'
+        '"roles":{"count":1,"total":1,"data":[{'
+        '"id":"6ff659d1-353e-424c-8dd3-f8cba6fc15a0",'
+        '"name":"Full Access User"}]'
+        '},'
+        '"externalKey":"PERSONfleiter1234",'
+        '"locked":["externallyOwned","externalKey"],'
+        '"status":"ACTIVE",'
+        '"links":{'
+        '"self":"/api/xm/1/people/ac06ca54-1709-432b-9050-11701710e01b"}'
         '}')
         XLOGGER.debug("PersonTest.setUp - self.test_data: %s", self.test_data)
         self.id = "ac06ca54-1709-432b-9050-11701710e01b"
@@ -906,9 +899,9 @@ class PersonTest(unittest.TestCase):
         self.recipient_type = RecipientType.PERSON
         self.externally_owned_f = False
         self.externally_owned_t = True
-        self.external_key = "fleiter1234"
+        self.external_key = "PERSONfleiter1234"
         self.self = "/api/xm/1/people/ac06ca54-1709-432b-9050-11701710e01b"
-        self.links_json_str = ('{"self": "%s"}')%(self.self)
+        self.links_json_str = ('{"self":"%s"}')%(self.self)
         self.links =SelfLink.from_json_str(self.links_json_str)
         self.first_name = "Felix"
         self.last_name  = "Leiter"
@@ -919,35 +912,33 @@ class PersonTest(unittest.TestCase):
         self.properties_json_str = (
             '{"Department":"Finance","Job Title":"Analyst"}')
         self.properties = dict([
-            ("Department","Finance"),
-            ("Job Title","Analyst")
+            ("Department","Finance"),("Job Title","Analyst")
             ])
-        self.roles_json_str = ('{"count": 1, "total": 1, "data": [%s]}')%(
+        self.roles_json_str = ('{"count":1,"total":1,"data":[%s]}')%(
             ('{"id":"6ff659d1-353e-424c-8dd3-f8cba6fc15a0",'
              '"name":"Full Access User"}'))
         self.roles = RolePagination.from_json_str(self.roles_json_str)
         self.site_id = "7f84fa10-70a6-45f6-9cae-2185fcba8993"
         self.site_self = "/api/xm/1/sites/7f84fa10-70a6-45f6-9cae-2185fcba8993"
-        self.site_links_json_str = ('{"self": "%s"}')%(self.site_self)
+        self.site_links_json_str = ('{"self":"%s"}')%(self.site_self)
         self.site_links = SelfLink.from_json_str(self.site_links_json_str)
-        self.site_json_str = (
-            '{"id": "%s", "links": %s}'
-            )%(self.site_id, self.site_links_json_str)
+        self.site_json_str = ('{"id":"%s","links":%s}')%(
+            self.site_id, self.site_links_json_str)
         self.site = ReferenceByIdAndSelfLink.from_json_str(
             self.site_json_str)
         self.externalKeyT = (
             "%s%s")%(self.recipient_type.value, self.target_name)
         self.externalKeyF = None
-        self.locked_list = ["externallyOwned", "externalKey"]
-        self.locked = (', '.join('"' + itm + '"' for itm in self.locked_list))
+        self.locked_list = ["externallyOwned","externalKey"]
+        self.locked = (','.join('"' + itm + '"' for itm in self.locked_list))
         self.status = RecipientStatus.ACTIVE
         self.self = "/api/xm/1/people/ac06ca54-1709-432b-9050-11701710e01b"
         self.json_str1 = (
-            '{"id": "%s", "targetName": "%s", "recipientType": "%s", '
-            '"externallyOwned": %s, "firstName": "%s", "lastName": "%s", '
-            '"language": "%s", "timezone": "%s", "webLogin": "%s", '
-            '"site": %s, "phoneLogin": "%s", "properties": %s, "roles": %s, '
-            '"externalKey": "%s", "locked": [%s], "status": "%s", "links": %s}'
+            '{"id":"%s","targetName":"%s","recipientType":"%s",'
+            '"externallyOwned":%s,"firstName":"%s","lastName":"%s",'
+            '"language":"%s","timezone":"%s","webLogin":"%s",'
+            '"site":%s,"phoneLogin":"%s","properties":%s,"roles":%s,'
+            '"externalKey":"%s","locked":[%s],"status":"%s","links":%s}'
             )%(self.id, self.target_name, self.recipient_type.value,
             str(self.externally_owned_t).lower(),
             self.first_name,
@@ -963,9 +954,9 @@ class PersonTest(unittest.TestCase):
             self.status.value, self.links_json_str)
         XLOGGER.debug("PersonTest.setUp - json_str1: %s", self.json_str1)
         self.json_str2 = (
-            '{"id": "%s", "targetName": "%s", "recipientType": "%s", '
-            '"externallyOwned": %s, "firstName": "%s", "lastName": "%s", '
-            '"language": "%s", "timezone": "%s", "webLogin": "%s", "site": %s}'
+            '{"id":"%s","targetName":"%s","recipientType":"%s",'
+            '"externallyOwned":%s,"firstName":"%s","lastName":"%s",'
+            '"language":"%s","timezone":"%s","webLogin":"%s","site":%s}'
             )%(self.id, self.target_name, self.recipient_type.value,
             str(self.externally_owned_t).lower(),
             self.first_name,
@@ -977,10 +968,10 @@ class PersonTest(unittest.TestCase):
         XLOGGER.debug("PersonTest.setUp - json_str2: %s", self.json_str2)
         #Missing required field errors
         self.bad_json1 = (
-            '{"targetName": "%s", "recipientType": "%s", '
-            '"externallyOwned": %s, "firstName": "%s", "lastName": "%s", '
-            '"language": "%s", "timezone": "%s", "webLogin": "%s", '
-            '"site": %s}'
+            '{"targetName":"%s","recipientType":"%s",'
+            '"externallyOwned":%s,"firstName":"%s","lastName":"%s",'
+            '"language":"%s","timezone":"%s","webLogin":"%s",'
+            '"site":%s}'
             )%(self.target_name, self.recipient_type.value,
             str(self.externally_owned_t).lower(),
             self.first_name,
@@ -990,10 +981,10 @@ class PersonTest(unittest.TestCase):
             self.web_login,
             self.site_json_str)
         self.bad_json2 = (
-            '{"id": "%s", "recipientType": "%s", '
-            '"externallyOwned": %s, "firstName": "%s", "lastName": "%s", '
-            '"language": "%s", "timezone": "%s", "webLogin": "%s", '
-            '"site": %s}'
+            '{"id":"%s","recipientType":"%s",'
+            '"externallyOwned":%s,"firstName":"%s","lastName":"%s",'
+            '"language":"%s","timezone":"%s","webLogin":"%s",'
+            '"site":%s}'
             )%(self.id, self.recipient_type.value,
             str(self.externally_owned_t).lower(),
             self.first_name,
@@ -1003,10 +994,10 @@ class PersonTest(unittest.TestCase):
             self.web_login,
             self.site_json_str)
         self.bad_json3 = (
-            '{"id": "%s", "targetName": "%s", '
-            '"externallyOwned": %s, "firstName": "%s", "lastName": "%s", '
-            '"language": "%s", "timezone": "%s", "webLogin": "%s", '
-            '"site": %s}'
+            '{"id":"%s","targetName":"%s",'
+            '"externallyOwned":%s,"firstName":"%s","lastName":"%s",'
+            '"language":"%s","timezone":"%s","webLogin":"%s",'
+            '"site":%s}'
             )%(self.id, self.target_name,
             str(self.externally_owned_t).lower(),
             self.first_name,
@@ -1016,10 +1007,10 @@ class PersonTest(unittest.TestCase):
             self.web_login,
             self.site_json_str)
         self.bad_json4 = (
-            '{"id": "%s", "targetName": "%s", "recipientType": "%s", '
-            '"firstName": "%s", "lastName": "%s", '
-            '"language": "%s", "timezone": "%s", "webLogin": "%s", '
-            '"site": %s}'
+            '{"id":"%s","targetName":"%s","recipientType":"%s",'
+            '"firstName":"%s","lastName":"%s",'
+            '"language":"%s","timezone":"%s","webLogin":"%s",'
+            '"site":%s}'
             )%(self.id, self.target_name, self.recipient_type.value,
             self.first_name,
             self.last_name,
@@ -1028,10 +1019,10 @@ class PersonTest(unittest.TestCase):
             self.web_login,
             self.site_json_str)
         self.bad_json5 = (
-            '{"id": "%s", "targetName": "%s", "recipientType": "%s", '
-            '"externallyOwned": %s, "lastName": "%s", '
-            '"language": "%s", "timezone": "%s", "webLogin": "%s", '
-            '"site": %s}'
+            '{"id":"%s","targetName":"%s","recipientType":"%s",'
+            '"externallyOwned":%s,"lastName":"%s",'
+            '"language":"%s","timezone":"%s","webLogin":"%s",'
+            '"site":%s}'
             )%(self.id, self.target_name, self.recipient_type.value,
             str(self.externally_owned_t).lower(),
             self.last_name,
@@ -1040,10 +1031,10 @@ class PersonTest(unittest.TestCase):
             self.web_login,
             self.site_json_str)
         self.bad_json6 = (
-            '{"id": "%s", "targetName": "%s", "recipientType": "%s", '
-            '"externallyOwned": %s, "firstName": "%s", '
-            '"language": "%s", "timezone": "%s", "webLogin": "%s", '
-            '"site": %s}'
+            '{"id":"%s","targetName":"%s","recipientType":"%s",'
+            '"externallyOwned":%s,"firstName":"%s",'
+            '"language":"%s","timezone":"%s","webLogin":"%s",'
+            '"site":%s}'
             )%(self.id, self.target_name, self.recipient_type.value,
             str(self.externally_owned_t).lower(),
             self.first_name,
@@ -1052,10 +1043,10 @@ class PersonTest(unittest.TestCase):
             self.web_login,
             self.site_json_str)
         self.bad_json7 = (
-            '{"id": "%s", "targetName": "%s", "recipientType": "%s", '
-            '"externallyOwned": %s, "firstName": "%s", "lastName": "%s", '
-            '"timezone": "%s", "webLogin": "%s", '
-            '"site": %s}'
+            '{"id":"%s","targetName":"%s","recipientType":"%s",'
+            '"externallyOwned":%s,"firstName":"%s","lastName":"%s",'
+            '"timezone":"%s","webLogin":"%s",'
+            '"site":%s}'
             )%(self.id, self.target_name, self.recipient_type.value,
             str(self.externally_owned_t).lower(),
             self.first_name,
@@ -1064,10 +1055,10 @@ class PersonTest(unittest.TestCase):
             self.web_login,
             self.site_json_str)
         self.bad_json8 = (
-            '{"id": "%s", "targetName": "%s", "recipientType": "%s", '
-            '"externallyOwned": %s, "firstName": "%s", "lastName": "%s", '
-            '"language": "%s", "webLogin": "%s", '
-            '"site": %s}'
+            '{"id":"%s","targetName":"%s","recipientType":"%s",'
+            '"externallyOwned":%s,"firstName":"%s","lastName":"%s",'
+            '"language":"%s","webLogin":"%s",'
+            '"site":%s}'
             )%(self.id, self.target_name, self.recipient_type.value,
             str(self.externally_owned_t).lower(),
             self.first_name,
@@ -1076,10 +1067,10 @@ class PersonTest(unittest.TestCase):
             self.web_login,
             self.site_json_str)
         self.bad_json9 = (
-            '{"id": "%s", "targetName": "%s", "recipientType": "%s", '
-            '"externallyOwned": %s, "firstName": "%s", "lastName": "%s", '
-            '"language": "%s", "timezone": "%s", '
-            '"site": %s}'
+            '{"id":"%s","targetName":"%s","recipientType":"%s",'
+            '"externallyOwned":%s,"firstName":"%s","lastName":"%s",'
+            '"language":"%s","timezone":"%s",'
+            '"site":%s}'
             )%(self.id, self.target_name, self.recipient_type.value,
             str(self.externally_owned_t).lower(),
             self.first_name,
@@ -1088,9 +1079,9 @@ class PersonTest(unittest.TestCase):
             self.timezone,
             self.site_json_str)
         self.bad_json10 = (
-            '{"id": "%s", "targetName": "%s", "recipientType": "%s", '
-            '"externallyOwned": %s, "firstName": "%s", "lastName": "%s", '
-            '"language": "%s", "timezone": "%s", "webLogin": "%s"}'
+            '{"id":"%s","targetName":"%s","recipientType":"%s",'
+            '"externallyOwned":%s,"firstName":"%s","lastName":"%s",'
+            '"language":"%s","timezone":"%s","webLogin":"%s"}'
             )%(self.id, self.target_name, self.recipient_type.value,
             str(self.externally_owned_t).lower(),
             self.first_name,
@@ -1100,10 +1091,10 @@ class PersonTest(unittest.TestCase):
             self.web_login)
         #Bad data type errors
         self.bad_json11 = (
-            '{"id": "%s", "targetName": "%s", "recipientType": "%s", '
-            '"externallyOwned": %s, "firstName": 0, "lastName": "%s", '
-            '"language": "%s", "timezone": "%s", "webLogin": "%s", '
-            '"site": %s, "phoneLogin": "%s", "properties": %s, "roles": %s}'
+            '{"id":"%s","targetName":"%s","recipientType":"%s",'
+            '"externallyOwned":%s,"firstName":0, "lastName":"%s",'
+            '"language":"%s","timezone":"%s","webLogin":"%s",'
+            '"site":%s,"phoneLogin":"%s","properties":%s,"roles":%s}'
             )%(self.id, self.target_name, self.recipient_type.value,
             str(self.externally_owned_t).lower(),
             self.last_name,
@@ -1115,10 +1106,10 @@ class PersonTest(unittest.TestCase):
             self.properties_json_str,
             self.roles_json_str)
         self.bad_json12 = (
-            '{"id": "%s", "targetName": "%s", "recipientType": "%s", '
-            '"externallyOwned": %s, "firstName": "%s", "lastName": 0, '
-            '"language": "%s", "timezone": "%s", "webLogin": "%s", '
-            '"site": %s, "phoneLogin": "%s", "properties": %s, "roles": %s}'
+            '{"id":"%s","targetName":"%s","recipientType":"%s",'
+            '"externallyOwned":%s,"firstName":"%s","lastName":0, '
+            '"language":"%s","timezone":"%s","webLogin":"%s",'
+            '"site":%s,"phoneLogin":"%s","properties":%s,"roles":%s}'
             )%(self.id, self.target_name, self.recipient_type.value,
             str(self.externally_owned_t).lower(),
             self.first_name,
@@ -1130,10 +1121,10 @@ class PersonTest(unittest.TestCase):
             self.properties_json_str,
             self.roles_json_str)
         self.bad_json13 = (
-            '{"id": "%s", "targetName": "%s", "recipientType": "%s", '
-            '"externallyOwned": %s, "firstName": "%s", "lastName": "%s", '
-            '"language": 0, "timezone": "%s", "webLogin": "%s", '
-            '"site": %s, "phoneLogin": "%s", "properties": %s, "roles": %s}'
+            '{"id":"%s","targetName":"%s","recipientType":"%s",'
+            '"externallyOwned":%s,"firstName":"%s","lastName":"%s",'
+            '"language":0, "timezone":"%s","webLogin":"%s",'
+            '"site":%s,"phoneLogin":"%s","properties":%s,"roles":%s}'
             )%(self.id, self.target_name, self.recipient_type.value,
             str(self.externally_owned_t).lower(),
             self.first_name,
@@ -1145,10 +1136,10 @@ class PersonTest(unittest.TestCase):
             self.properties_json_str,
             self.roles_json_str)
         self.bad_json14 = (
-            '{"id": "%s", "targetName": "%s", "recipientType": "%s", '
-            '"externallyOwned": %s, "firstName": "%s", "lastName": "%s", '
-            '"language": "%s", "timezone": 0, "webLogin": "%s", '
-            '"site": %s, "phoneLogin": "%s", "properties": %s, "roles": %s}'
+            '{"id":"%s","targetName":"%s","recipientType":"%s",'
+            '"externallyOwned":%s,"firstName":"%s","lastName":"%s",'
+            '"language":"%s","timezone":0, "webLogin":"%s",'
+            '"site":%s,"phoneLogin":"%s","properties":%s,"roles":%s}'
             )%(self.id, self.target_name, self.recipient_type.value,
             str(self.externally_owned_t).lower(),
             self.first_name,
@@ -1160,10 +1151,10 @@ class PersonTest(unittest.TestCase):
             self.properties_json_str,
             self.roles_json_str)
         self.bad_json15 = (
-            '{"id": "%s", "targetName": "%s", "recipientType": "%s", '
-            '"externallyOwned": %s, "firstName": "%s", "lastName": "%s", '
-            '"language": "%s", "timezone": "%s", "webLogin": 0, '
-            '"site": %s, "phoneLogin": "%s", "properties": %s, "roles": %s}'
+            '{"id":"%s","targetName":"%s","recipientType":"%s",'
+            '"externallyOwned":%s,"firstName":"%s","lastName":"%s",'
+            '"language":"%s","timezone":"%s","webLogin":0, '
+            '"site":%s,"phoneLogin":"%s","properties":%s,"roles":%s}'
             )%(self.id, self.target_name, self.recipient_type.value,
             str(self.externally_owned_t).lower(),
             self.first_name,
@@ -1175,10 +1166,10 @@ class PersonTest(unittest.TestCase):
             self.properties_json_str,
             self.roles_json_str)
         self.bad_json16 = (
-            '{"id": "%s", "targetName": "%s", "recipientType": "%s", '
-            '"externallyOwned": %s, "firstName": "%s", "lastName": "%s", '
-            '"language": "%s", "timezone": "%s", "webLogin": "%s", '
-            '"site": 0, "phoneLogin": "%s", "properties": %s, "roles": %s}'
+            '{"id":"%s","targetName":"%s","recipientType":"%s",'
+            '"externallyOwned":%s,"firstName":"%s","lastName":"%s",'
+            '"language":"%s","timezone":"%s","webLogin":"%s",'
+            '"site":0, "phoneLogin":"%s","properties":%s,"roles":%s}'
             )%(self.id, self.target_name, self.recipient_type.value,
             str(self.externally_owned_t).lower(),
             self.first_name,
@@ -1190,10 +1181,10 @@ class PersonTest(unittest.TestCase):
             self.properties_json_str,
             self.roles_json_str)
         self.bad_json17 = (
-            '{"id": "%s", "targetName": "%s", "recipientType": "%s", '
-            '"externallyOwned": %s, "firstName": "%s", "lastName": "%s", '
-            '"language": "%s", "timezone": "%s", "webLogin": "%s", '
-            '"site": %s, "phoneLogin": 0, "properties": %s, "roles": %s}'
+            '{"id":"%s","targetName":"%s","recipientType":"%s",'
+            '"externallyOwned":%s,"firstName":"%s","lastName":"%s",'
+            '"language":"%s","timezone":"%s","webLogin":"%s",'
+            '"site":%s,"phoneLogin":0, "properties":%s,"roles":%s}'
             )%(self.id, self.target_name, self.recipient_type.value,
             str(self.externally_owned_t).lower(),
             self.first_name,
@@ -1205,10 +1196,10 @@ class PersonTest(unittest.TestCase):
             self.properties_json_str,
             self.roles_json_str)
         self.bad_json18 = (
-            '{"id": "%s", "targetName": "%s", "recipientType": "%s", '
-            '"externallyOwned": %s, "firstName": "%s", "lastName": "%s", '
-            '"language": "%s", "timezone": "%s", "webLogin": "%s", '
-            '"site": %s, "phoneLogin": "%s", "properties": 0, "roles": %s}'
+            '{"id":"%s","targetName":"%s","recipientType":"%s",'
+            '"externallyOwned":%s,"firstName":"%s","lastName":"%s",'
+            '"language":"%s","timezone":"%s","webLogin":"%s",'
+            '"site":%s,"phoneLogin":"%s","properties":0, "roles":%s}'
             )%(self.id, self.target_name, self.recipient_type.value,
             str(self.externally_owned_t).lower(),
             self.first_name,
@@ -1220,10 +1211,10 @@ class PersonTest(unittest.TestCase):
             self.phone_login,
             self.roles_json_str)
         self.bad_json19 = (
-            '{"id": "%s", "targetName": "%s", "recipientType": "%s", '
-            '"externallyOwned": %s, "firstName": "%s", "lastName": "%s", '
-            '"language": "%s", "timezone": "%s", "webLogin": "%s", '
-            '"site": %s, "phoneLogin": "%s", "properties": %s, "roles": 0}'
+            '{"id":"%s","targetName":"%s","recipientType":"%s",'
+            '"externallyOwned":%s,"firstName":"%s","lastName":"%s",'
+            '"language":"%s","timezone":"%s","webLogin":"%s",'
+            '"site":%s,"phoneLogin":"%s","properties":%s,"roles":0}'
             )%(self.id, self.target_name, self.recipient_type.value,
             str(self.externally_owned_t).lower(),
             self.first_name,
@@ -1339,6 +1330,13 @@ class PersonTest(unittest.TestCase):
             "PersonTest.test_Person_from_json_str: Start")
         obj = Person.from_json_str(self.json_str1)
         self.assertIsInstance(obj, Person)
+        XLOGGER.debug(
+            "PersonTest.test_Person_from_json_str: obj: %s",
+            repr(obj))
+        XLOGGER.debug(
+            "PersonTest.test_Person_from_json_str: json.dumps(obj): %s",
+            obj.json)
+        assert self.json_str1 == obj.json
         obj1 = Person(
             self.id,
             self.target_name,
@@ -1358,6 +1356,19 @@ class PersonTest(unittest.TestCase):
             self.status,
             self.links)
         self.assertEqual(obj, obj1)
+        XLOGGER.debug(
+            "PersonTest.test_Person_from_json_str: Creating test_data")
+        test_data = Person.from_json_str(self.test_data)
+        self.assertIsInstance(test_data, Person)
+        self.assertEqual(obj, test_data)
+        jstr = obj.json
+        XLOGGER.debug(
+            "PersonTest.test_Person_from_json_str:  obj.json: %s",
+            jstr)
+        XLOGGER.debug(
+            "PersonTest.test_Person_from_json_str: test_data: %s",
+            self.test_data)
+        assert jstr == self.test_data
         self.assertRaises(
             TypeError, Person.from_json_str, self.bad_json1)
         self.assertRaises(

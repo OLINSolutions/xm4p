@@ -206,6 +206,7 @@ class DynamicTeam(Recipient):
         id (str): A unique identifier that represents the dynamic team.
         target_name (str): The name of the dynamic team.
         recipient_type (str): For dynamic teams, this value is “DYNAMIC_TEAM”.
+            (Property overridden.)
         externally_owned (bool): True if the object is managed by an external
             system. False by default.
             A field is externally owned when it is managed by an external
@@ -219,7 +220,7 @@ class DynamicTeam(Recipient):
             modified in the xmatters user interface.
         status (:Enum:`RecipientStatus`): Whether the recipient is active.
             Inactive recipients do not receive notifications.
-            Dynamic Teams are always active.
+            Dynamic Teams are always active. (Property overridden.)
         links (:obj:`SelfLink`): A link that can be used to access the object
             from within the API.
             Not included with Dynamic Team Recipients because they cannot yet
@@ -238,31 +239,25 @@ class DynamicTeam(Recipient):
         Recipient._common_attr_types + [bool] +
         Recipient._common_attr_opt_types)
 
-    def __init__(self, *args, **kwargs):
-        """Creates and initializes an instance.
+    @property
+    def recipient_type(self) -> RecipientType:
+        """:obj:`RecipientType`: Always DYNAMIC_TEAM"""
+        return RecipientType.DYNAMIC_TEAM
 
-        Args:
-            *args
-                Variable length argument list.
-                Must follow the order of types.
-            **kwargs
-                Arbitrary keyword arguments.
-                Must follow the appropriate type for the named arg
+    @recipient_type.setter
+    def recipient_type(self, value):
+        """Ignore, don't do anything with value"""
+        pass
 
-        Returns:
-            object: An initialized instance
+    @property
+    def status(self) -> RecipientStatus:
+        """:obj:`RecipientStatus`: Always ACTIVE"""
+        return RecipientStatus.ACTIVE
 
-        Raises:
-            TypeError: The type of an argument value is not correct, or
-                a required argument is missing
-        """
-        self.recipient_type =None
-        self.status = None
-        super().__init__(*args, **kwargs)
-        if self.recipient_type is None:
-            self.recipient_type = RecipientType.DYNAMIC_TEAM
-        if self.status is None:
-            self.status = RecipientStatus.ACTIVE
+    @status.setter
+    def status(self, value):
+        """Ignore, don't do anything with value"""
+        pass
 
 class Group(Recipient):
     """xmatters Group representation
@@ -535,7 +530,7 @@ class Person(Recipient):
         Recipient._common_attr_opt_types)
 
 def main():
-    """In case we ever need to run this stand-alone"""
+    """If stand-alone"""
     pass
 
 if __name__ == '__main__':
