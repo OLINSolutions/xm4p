@@ -1,7 +1,11 @@
 """Exports and variables used by the xMatters modules
 """
 __all__ = ['base', 'common', 'recipients', 'events']
+
 from xmatters.base import XmattersBase
+from xmatters.base import XmattersController
+from xmatters.base import XmattersEntity
+from xmatters.base import XmattersEntityType
 from xmatters.base import XmattersJSONEncoder
 from xmatters.base import XmattersList
 from xmatters.common import Error
@@ -24,6 +28,8 @@ from xmatters.recipients import RolePagination
 from xmatters.events import Conference
 from xmatters.events import ConferenceHostType
 from xmatters.events import Event
+from xmatters.events import EventList
+from xmatters.events import EventPagination
 from xmatters.events import EventPriority
 from xmatters.events import EventStatus
 from xmatters.events import FormReference
@@ -34,3 +40,4 @@ from xmatters.events import ResponseContribution
 from xmatters.events import ResponseOption
 from xmatters.events import ResponseOptionList
 from xmatters.events import ResponseOptionPagination
+from xmatters.events import XmattersEvent

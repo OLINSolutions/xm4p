@@ -161,7 +161,6 @@ class Recipient(XmattersBase):
     _common_attr_opt_types = [str, list, RecipientStatus, SelfLink]
     _attr_types =_common_attr_types + _common_attr_opt_types
 
-
 class DynamicTeam(Recipient):
     """xmatters DynamicTeam representation
 

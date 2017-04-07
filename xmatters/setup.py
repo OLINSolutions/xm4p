@@ -5,17 +5,17 @@ https://packaging.python.org/en/latest/distributing.html
 https://github.com/pypa/sampleproject
 """
 
+# To use a consistent encoding
+from codecs import open # pylint: disable=redefined-builtin
+from os import path
 # Always prefer setuptools over distutils
 from setuptools import setup, find_packages
-# To use a consistent encoding
-from codecs import open
-from os import path
 
-here = path.abspath(path.dirname(__file__))
+here = path.abspath(path.dirname(__file__)) # pylint: disable=invalid-name
 
 # Get the long description from the README file
 with open(path.join(here, 'README.rst'), encoding='utf-8') as f:
-    long_description = f.read()
+    long_description = f.read() # pylint: disable=invalid-name
 
 setup(
     name='xmatters',
@@ -75,7 +75,7 @@ setup(
     # your project is installed. For an analysis of "install_requires" vs pip's
     # requirements files see:
     # https://packaging.python.org/en/latest/requirements.html
-    install_requires=['request'],
+    install_requires=['requests'],
 
     # List additional groups of dependencies here (e.g. development
     # dependencies). You can install these using the following syntax,
@@ -107,5 +107,5 @@ setup(
     #    'console_scripts': [
     #        'sample=sample:main',
     #    ],
-    },
+    }
 )

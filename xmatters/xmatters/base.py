@@ -10,7 +10,10 @@ Starting point for most objects used throughout the xMatters API.
 from enum import Enum
 import json
 import logging
-import types
+import sys
+from urllib.parse import quote_plus
+from requests import get
+from requests.exceptions import RequestException
 
 LOGGER = logging.getLogger('xlogger')
 
@@ -25,6 +28,10 @@ class XmattersList(list):
     """
 
     base_class = None
+
+    def get_class(self):
+        """The instance-relative base class object"""
+        return self.base_class
 
     @property
     def json(self) -> str:
@@ -107,38 +114,32 @@ class XmattersList(list):
 class XmattersJSONEncoder(json.JSONEncoder):
     """xMatters object JSON encoder
 
-    Used to create a data element convertable to JSON
+    Used to create a data element convertible to JSON
     """
-    def default(self, obj):
+    def default(self, o):  # pylint: disable=method-hidden
         LOGGER.debug(
             "XmattersJSONEncoder.default: type of obj: %s",
-            type(obj).__name__)
-        if issubclass(type(obj), Enum):
+            type(o).__name__)
+        if issubclass(type(o), Enum):
             LOGGER.debug(
                 "XmattersJSONEncoder.default: type of obj: %s, %s",
-                type(obj).__name__, obj.value)
-            serial = obj.value
+                type(o).__name__, o.value)
+            serial = o.value
             return serial
 
-        if issubclass(type(obj), XmattersBase):
-            LOGGER.debug(
-                "XmattersJSONEncoder.default: %s is an XmattersBase subclass",
-                type(obj).__name__)
-            LOGGER.debug(
-                "XmattersJSONEncoder.default: contents: %s",
-                str(obj.__dict__))
-            LOGGER.debug(
-                "XmattersJSONEncoder.default: obj.jsondict: %s",
-                str(obj.jsondict))
+        if issubclass(type(o), XmattersBase):
             serial = dict(
-                (k, getattr(obj, v)) for k, v in obj.jsondict.items() if getattr(obj,v) is not None)
-            LOGGER.debug(
-                "XmattersJSONEncoder.default: contents: %s",
+                (k, getattr(o, v))
+                for k, v in o.jsondict.items() if getattr(o,v) is not None)
+            LOGGER.debug((
+                "XmattersJSONEncoder.default: %s is an XmattersBase subclass. "
+                "\n\t  before: %s\n\tjsondict: %s\n\t   after: %s"),
+                type(o).__name__, str(o.__dict__), str(o.jsondict),
                 str(serial))
             return serial
 
         # Let the base class default method raise the TypeError
-        return json.JSONEncoder.default(self, obj)
+        return json.JSONEncoder.default(self, o)
 
 class XmattersBase(object):
     """xMatters object representation
@@ -458,6 +459,153 @@ class XmattersBase(object):
         """
         obj = json.loads(json_self)
         return cls.from_json_obj(obj)
+
+class XmattersEntityType(Enum):
+    """Types of xMatters objects that may be controlled as an entity
+
+    An Entity Type represents an xMatters object that has a direct and
+    specificy set of API calls that may be acted upon by an
+    xMattersController.
+    """
+    EVENT = "XmattersEvent"
+
+class XmattersEntity(object):  # pylint: disable=too-few-public-methods
+    """Represents a controllable xMatters class
+
+    When combined with an XmattersController, will instantiate a related
+    xMatters object type that can be used to query or manipulate the related
+    object in the xMatters instance.
+
+    Attributes:
+        entity (:class:`XmattersBase`): The entity type to instantiate and
+        related this with.An  Base URL of the xMatters instance
+        auth (:obj:`requests.auth.AuthBase`): A sub-class of AuthBase that
+            will be used to authenticate as the xMatters API consumer.
+        company (str): The official company named used by xMatters in case
+            a SOAP request will need to be made.
+    """
+
+    _base_uri = '/api/xm/1/'
+    _get_uri = None
+    _post_uri = None
+    _entity_type = None
+
+    def list(self, **kwargs):
+        """Returns a list of identifiers that can be used to retrieve"""
+        raise NotImplementedError
+
+    def get(self, **kwargs):
+        """Retrieves one or more specific instance of the entity."""
+        offset = kwargs['offset'] if 'offset' in kwargs else None
+        limit = kwargs['limit'] if 'limit' in kwargs else None
+        props = kwargs['props'] if 'props' in kwargs else None
+        url = self.controller.url + self._base_uri + self._get_uri
+        qmrk = ''
+        srch = ''
+        ofs = ''
+        lmt = ''
+        if props:
+            names = ','.join(props.keys())
+            values = ','.join([quote_plus(x) for x in props.values()])
+            qmrk = '?'
+            srch = 'propertyName=%s&propertyValue=%s'%(names,values)
+        if offset:
+            qmrk = '?'
+            ofs = 'offset=' + str(offset)
+        if limit:
+            qmrk = '?'
+            lmt = 'limit=' + str(limit)
+        url += qmrk + srch + ofs + lmt
+        print('%s.get - url: %s'%(self.__class__.__name__, url))
+        LOGGER.debug('%s.get - url: %s', self.__class__.__name__, url)
+        # Initialize loop with first request
+        try:
+            response = get(
+                url,
+                auth=self.controller.auth if self.controller.auth else None)
+        except RequestException as reqexc:
+            raise RequestException(reqexc)
+
+        # If the initial response fails, then just terminate the process
+        if response.status_code != 200:
+            raise "get from %s returned status_code of %d"%(
+                url, response.status_code)
+        entities = response.json()
+        return self._entity_type.from_json_obj(entities)
+
+    def __init__(self, controller):
+        """Creates and initializes an instance.
+
+        Args:
+            **kwargs
+                Arbitrary keyword arguments.
+                Must follow the appropriate type for the named arg
+
+        Returns:
+            object: An initialized instance
+
+        Raises:
+            TypeError: The type of an argument value is not correct, or
+                a required argument is missing
+        """
+        super(XmattersEntity, self).__init__()
+        self.controller = controller
+
+class XmattersController(object):  # pylint: disable=too-few-public-methods
+    """Represents an interface to the xMatters environment
+
+    Used to facilitate building applications that need to query and
+    manipulate information in an xMatters instance.
+
+    Attributes:
+        url (str): Base URL of the xMatters instance
+        auth (:obj:`requests.auth.AuthBase`): A sub-class of AuthBase that
+            will be used to authenticate as the xMatters API consumer.
+        company (str): The official company named used by xMatters in case
+            a SOAP request will need to be made.
+        language (str): The language for the instance, default is English en
+
+    """
+
+    def __init__(self, **kwargs):
+        """Creates and initializes an instance.
+
+        Args:
+            **kwargs
+                Arbitrary keyword arguments.
+                Must follow the appropriate type for the named arg
+            url (str): Base URL of the xMatters instance
+            auth (:obj:`requests.auth.AuthBase`): A sub-class of AuthBase that
+                will be used to authenticate as the xMatters API consumer.
+            company (str, optional): The official company named used by
+                xMatters in case a SOAP request will need to be made.
+
+        Returns:
+            object: An initialized instance
+
+        Raises:
+            TypeError: The type of an argument value is not correct, or
+                a required argument is missing
+        """
+        self.url = kwargs['url'] if 'url' in kwargs else None
+        self.auth = kwargs['auth'] if 'auth' in kwargs else None
+        self.company = kwargs['company'] if 'company' in kwargs else None
+        self.language = kwargs['language'] if 'language' in kwargs else 'en'
+        if self.url is None:
+            raise TypeError("XmattersController requires a url.")
+        #if self.auth is None:
+        #    raise TypeError("XmattersController requires an auth instance.")
+
+    def _create_object(self, classname: str):
+        """Builds an instance of object based on dynamic classname string"""
+        mod = sys.modules['xmatters']
+        cls = getattr(mod, classname)
+        inst = cls(self)
+        return inst
+
+    def entity_factory(self, entity_type):
+        """Build an instance based on it's entity type"""
+        return self._create_object(entity_type.value)
 
 def main():
     """In case we ever need to run this stand-alone"""
