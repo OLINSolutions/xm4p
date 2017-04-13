@@ -25,6 +25,12 @@ from xmatters.recipients import RecipientType
 from xmatters.recipients import Role
 from xmatters.recipients import RoleList
 from xmatters.recipients import RolePagination
+from xmatters.device import Device
+from xmatters.device import DeviceTimeframe
+from xmatters.device import DeviceTimeframeList
+from xmatters.device import DeviceType
+from xmatters.device import PriorityThreshold
+from xmatters.device import TestStatus
 from xmatters.events import Conference
 from xmatters.events import ConferenceHostType
 from xmatters.events import Event

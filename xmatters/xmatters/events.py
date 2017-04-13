@@ -15,6 +15,7 @@ Ref:
 
 from enum import Enum
 import logging
+from requests.exceptions import RequestException
 from urllib.parse import quote_plus
 
 from xmatters import DynamicTeam
@@ -530,7 +531,7 @@ class XmattersEvent(XmattersEntity): # pylint: disable=too-few-public-methods
         LOGGER.debug('%s.get - url: %s', self.__class__.__name__, url)
         # Initialize loop with first request
         try:
-            response = get(
+            response = self.get(
                 url,
                 auth=self.controller.auth if self.controller.auth else None)
         except RequestException as reqexc:

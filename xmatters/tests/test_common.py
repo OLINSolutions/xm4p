@@ -14,7 +14,6 @@ from xmatters import PaginationLinks
 from xmatters import ReferenceById
 from xmatters import ReferenceByIdAndSelfLink
 from xmatters import SelfLink
-from xmatters import XmattersList
 
 from tests import _LOG_FILENAME
 from tests import _LOG_LEVEL

@@ -13,7 +13,6 @@ Reference:
 import logging
 
 from xmatters import XmattersBase
-from xmatters import XmattersList
 
 LOGGER = logging.getLogger('xlogger')
 
