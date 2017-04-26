@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
-"""xmatters Recipient Objects
+"""xMatters Recipient Objects
 
-Recipient objects used throughout the xmatters API.
+Recipient objects used throughout the xMatters API.
 
 Reference:
     https://help.xmatters.com/xmAPI/index.html#recipient-object
@@ -25,7 +25,7 @@ from xmatters import PaginationLinks
 LOGGER = logging.getLogger('xlogger')
 
 class RecipientPointer(XmattersBase):
-    """xmatters RecipientPointer representation
+    """xMatters RecipientPointer representation
 
     A reference to a recipient.
 
@@ -54,9 +54,9 @@ class RecipientPointer(XmattersBase):
 
 
 class PersonReference(XmattersBase):
-    """xmatters PersonReference representation
+    """xMatters PersonReference representation
 
-    Refers to a person in xmatters.
+    Refers to a person in xMatters.
 
     Reference:
         https://help.xmatters.com/xmAPI/index.html#person-reference-object
@@ -94,9 +94,9 @@ class RecipientStatus(Enum):
     INACTIVE = "INACTIVE"
 
 class Recipient(XmattersBase):
-    """xmatters Recipient representation
+    """xMatters Recipient representation
 
-    A recipient is a user, group, device or dynamic team in xmatters that can
+    A recipient is a user, group, device or dynamic team in xMatters that can
     receive notifications. The recipient object provides a base for Group
     object, Device object, Person object, and Dynamic team object.
 
@@ -162,16 +162,16 @@ class Recipient(XmattersBase):
     _attr_types =_common_attr_types + _common_attr_opt_types
 
 class DynamicTeam(Recipient):
-    """xmatters DynamicTeam representation
+    """xMatters DynamicTeam representation
 
     A dynamic team is a set of users that are automatically generated based on
     a common attribute such as their skills, location, or other attributes.
-    Dynamic teams cannot be accessed and manipulated directly with the xmatters
+    Dynamic teams cannot be accessed and manipulated directly with the xMatters
     API. However, when a dynamic team is a member of a group it is included in
     the returned list of group members.
     A dynamic team is based on the Recipient object but does not include the
     status field (because dynamic teams are always active) and does not include
-    the links field (because dynamic teams cannot be accessed with the xmatters
+    the links field (because dynamic teams cannot be accessed with the xMatters
     API).
 
     Reference:
@@ -192,7 +192,7 @@ class DynamicTeam(Recipient):
             receive notifications.
         external_key (str, optional): Ids a resource in an external system.
         locked (:obj:`list` of :obj:`str`, optional): A list of fields that
-            cannot be modified in the xmatters user interface.
+            cannot be modified in the xMatters user interface.
         status (:Enum:`RecipientStatus`, optional): Whether the recipient is
             active. Inactive recipients do not receive notifications.
             Dynamic Teams are always active.
@@ -202,28 +202,15 @@ class DynamicTeam(Recipient):
             this API.
 
     Attribute:
-        id (str): A unique identifier that represents the dynamic team.
-        target_name (str): The name of the dynamic team.
         recipient_type (str): For dynamic teams, this value is “DYNAMIC_TEAM”.
             (Property overridden.)
-        externally_owned (bool): True if the object is managed by an external
-            system. False by default.
-            A field is externally owned when it is managed by an external
-            system. Externally-owned objects cannot be deleted in the xmatters
-            user interface by most users.
-        external_key (str): Identifies a resource in an external system.
+        status (:Enum:`RecipientStatus`, optional): Whether the recipient is
+            active. Inactive recipients do not receive notifications.
+            Dynamic Teams are always active.
+            (Property overridden.)
         use_emergency_device (bool): True if the dynamic team is configured to
             contact failsafe devices when no other devices are configured to
             receive notifications.
-        locked (:obj:`list` of :obj:`str`): A list of fields that cannot be
-            modified in the xmatters user interface.
-        status (:Enum:`RecipientStatus`): Whether the recipient is active.
-            Inactive recipients do not receive notifications.
-            Dynamic Teams are always active. (Property overridden.)
-        links (:obj:`SelfLink`): A link that can be used to access the object
-            from within the API.
-            Not included with Dynamic Team Recipients because they cannot yet
-            be directly manipulated wih this API.
     """
     _arg_names = (
         Recipient._common_arg_names + ['use_emergency_device'] +
@@ -259,12 +246,12 @@ class DynamicTeam(Recipient):
         pass
 
 class Group(Recipient):
-    """xmatters Group representation
+    """xMatters Group representation
 
     Group objects include the fields defined in Recipient object in addition to
     fields specific to group recipients.
     To view information about group supervisors and group observers, log on to
-    the xmatters user interface and view the group.
+    the xMatters user interface and view the group.
     See also Recipient object.
 
     Reference:
@@ -278,7 +265,7 @@ class Group(Recipient):
         externally_owned (bool): True if the object is managed by an
             external system. False by default.
             A field is externally owned when it is managed by an external
-            system. Externally-owned objects cannot be deleted in the xmatters
+            system. Externally-owned objects cannot be deleted in the xMatters
             user interface by most users.
         allow_duplicates (bool): True if recipients can receive more than one
             notification for the same event.
@@ -286,7 +273,7 @@ class Group(Recipient):
         observed_by_all (bool): True if users can locate and send notifications
             to the group regardless of their role. If this value is false, only
             users who have the selected roles can observe the group. To view or
-            set the list of group observer roles, log on to the xmatters user
+            set the list of group observer roles, log on to the xMatters user
             interface and edit the group.
         use_default_devices (bool): True if group recipients may be notified on
             their default device when they do not have a device with an active
@@ -295,7 +282,7 @@ class Group(Recipient):
             can use to access the site the group uses for holidays.
         external_key (str, optional): Ids a resource in an external system.
         locked (:obj:`list` of :obj:`str`, optional): A list of fields that
-            cannot be modified in the xmatters user interface.
+            cannot be modified in the xMatters user interface.
         status (:Enum:`RecipientStatus`, optional): Whether the recipient is
             active. Inactive recipients do not receive notifications.
             Note: this field is not included with dynamic teams because they
@@ -306,14 +293,6 @@ class Group(Recipient):
             this API.
 
     Attributes:
-        id (str): A unique identifier that represents the recipient.
-        target_name (str): The Group name.
-        receipient_type (:Enum:`RecipientType`): This objects type, "Group".
-        externally_owned (bool): True if the object is managed by an external
-            system. False by default.
-            A field is externally owned when it is managed by an external
-            system. Externally-owned objects cannot be deleted in the xmatters
-            user interface by most users.
         allow_duplicates (bool): True if recipients can receive more than one
             notification for the same event.
         description (str): A description of the group.
@@ -327,17 +306,6 @@ class Group(Recipient):
             timeframe.
         site (:obj:`ReferencebyIdAndSelfLink`): Contains a link you can use to
             access the site the group uses for holidays.
-        external_key (str): Identifies a resource in an external system.
-        locked (:obj:`list` of :obj:`str`): A list of fields that cannot be
-            modified in the xmatters user interface.
-        status (:Enum:`RecipientStatus`): Whether the recipient is active.
-            Inactive recipients do not receive notifications.
-            Note: this field is not included with dynamic teams because they
-            are always active.
-        links (:obj:`SelfLink`): A link that can be used to access the object
-            from within the API. This link is not included with Dynamic Team
-            Recipients because they cannot yet be directly manipulated with
-            this API.
     """
     _arg_names = (
         Recipient._common_arg_names +
@@ -360,9 +328,9 @@ class Group(Recipient):
         Recipient._common_attr_opt_types)
 
 class Role(XmattersBase):
-    """xmatters Role representation
+    """xMatters Role representation
 
-    Refers to a role in xmatters.
+    Refers to a role in xMatters.
 
     Reference:
         https://help.xmatters.com/xmAPI/index.html#role-object
@@ -390,7 +358,7 @@ class RoleList(XmattersList):
     base_class = Role
 
 class RolePagination(Pagination):
-    """xmatters Pagination of Role object
+    """xMatters Pagination of Role object
 
     Reference:
         https://help.xmatters.com/xmAPI/index.html#role-object
@@ -416,9 +384,9 @@ class RolePagination(Pagination):
     _attr_types = [int, int, RoleList, PaginationLinks]
 
 class Person(Recipient):
-    """xmatters Person representation
+    """xMatters Person representation
 
-    Describes a person in xmatters. A person object is a Recipient object with
+    Describes a person in xMatters. A person object is a Recipient object with
     a recipientType of PERSON.
     A Person object contains the attributes of the Recipient object as well as
     the attributes described here.
@@ -437,14 +405,14 @@ class Person(Recipient):
         externally_owned (bool): True if the object is managed by an
             external system. False by default.
             A field is externally owned when it is managed by an external
-            system. Externally-owned objects cannot be deleted in the xmatters
+            system. Externally-owned objects cannot be deleted in the xMatters
             user interface by most users.
         first_name (str): The first name of the person.
         last_name (str): The last name of the person.
         language (str): The person’s default language.
         timezone (str): The person’s time zone. Example: “US/Eastern”
         web_login (str): The identifier the person can use to log in to the
-            xmatters user interface. This is often identical to the
+            xMatters user interface. This is often identical to the
             targetName value.
         site (:obj:`ReferenceByIdAndSelfLink`): A link to a resource that you
             can use to find out information about the site to which the
@@ -459,7 +427,7 @@ class Person(Recipient):
             ?embed=roles query parameter.
         external_key (str, optional): Ids a resource in an external system.
         locked (:obj:`list` of :obj:`str`, optional): A list of fields that
-            cannot be modified in the xmatters user interface.
+            cannot be modified in the xMatters user interface.
         status (:Enum:`RecipientStatus`, optional): Whether the recipient is
             active. Inactive recipients do not receive notifications.
             Note: this field is not included with dynamic teams because they
@@ -470,42 +438,23 @@ class Person(Recipient):
             this API.
 
     Attributes:
-        id (str): A unique id that represents the recipient.
-        target_name (str): The user's targeted identifier.
-        receipient_type (:Enum:`RecipientType`): This object's type, "Person".
-        externally_owned (bool): True if the object is managed by an
-            external system. False by default.
-            A field is externally owned when it is managed by an external
-            system. Externally-owned objects cannot be deleted in the xmatters
-            user interface by most users.
         first_name (str): The first name of the person.
         last_name (str): The last name of the person.
         language (str): The person’s default language.
         timezone (str): The person’s time zone. Example: “US/Eastern”
         web_login (str): The identifier the person can use to log in to the
-            xmatters user interface. This is often identical to the
+            xMatters user interface. This is often identical to the
             targetName value.
         site (:obj:`ReferenceByIdAndSelfLink`): A link to a resource that you
             can use to find out information about the site to which the
             person is assigned.
         phone_login (str): An access code that the person can use to identify
-            themselves when they phone in to xmatters to retrieve messages.
+            themselves when they phone in to xMatters to retrieve messages.
         properties (dict): A list of the custom fields and attributes
             that are defined for this person.
         roles (:obj:`RolePagination`): A list of the user’s roles.
             This optional field is included when the request uses the
             ?embed=roles query parameter.
-        external_key (str): Identifies a resource in an external system.
-        locked (:obj:`list` of :obj:`str`): A list of fields that cannot be
-            modified in the xmatters user interface.
-        status (:Enum:`RecipientStatus`): Whether the recipient is active.
-            Inactive recipients do not receive notifications.
-            Note: this field is not included with dynamic teams because they
-            are always active.
-        links (:obj:`SelfLink`): A link that can be used to access the object
-            from within the API. This link is not included with Dynamic Team
-            Recipients because they cannot yet be directly manipulated with
-            this API.
     """
     _arg_names = (
         Recipient._common_arg_names +

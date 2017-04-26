@@ -38,15 +38,11 @@ Ref:
 
 from enum import Enum
 import logging
-from requests.exceptions import RequestException
-from urllib.parse import quote_plus
 
 from xmatters import PersonReference
 from xmatters import Recipient
-from xmatters import RecipientType
 from xmatters import ReferenceById
 from xmatters import XmattersBase
-from xmatters import XmattersEntity
 from xmatters import XmattersList
 
 LOGGER = logging.getLogger('xlogger')
@@ -173,16 +169,6 @@ class Device(Recipient):
             this API.
 
     Attributes:
-        id (str): A unique id that represents the recipient.
-        target_name (str): For devices, the target name is the user name,
-            followed by the | (pipe) character, followed by the device name.
-            Example: “mmcbride|Work Phone”
-        receipient_type (:Enum:`RecipientType`): This object's type, "Device".
-        externally_owned (bool): True if the object is managed by an
-            external system. False by default.
-            A field is externally owned when it is managed by an external
-            system. Externally-owned objects cannot be deleted in the xmatters
-            user interface by most users.
         default_device (bool): True if this device can receive notifications
             when the person has no active devices.
         delay (int): The number of minutes to wait for a response on this
@@ -203,19 +189,6 @@ class Device(Recipient):
             device is active and able to receive notifications. This field is
             included when the query parameter ?embed=timeframes is included in
             supported requests.
-        site (:obj:`ReferencebyIdAndSelfLink`): Contains a link you
-            can use to access the site the group uses for holidays.
-        external_key (str, optional): Ids a resource in an external system.
-        locked (:obj:`list` of :obj:`str`): A list of fields that
-            cannot be modified in the xmatters user interface.
-        status (:Enum:`RecipientStatus`): Whether the recipient is
-            active. Inactive recipients do not receive notifications.
-            Note: this field is not included with dynamic teams because they
-            are always active.
-        links (:obj:`SelfLink`): A link that can be used to access the
-            object from within the API. This link is not included with Dynamic
-            Team Recipients because they cannot yet be directly manipulated with
-            this API.
     """
     _common_arg_names = (
         Recipient._common_arg_names +
@@ -303,52 +276,9 @@ class EmailDevice(Device):
             this API.
 
     Attributes:
-        id (str): A unique id that represents the recipient.
-        target_name (str): For devices, the target name is the user name,
-            followed by the | (pipe) character, followed by the device name.
-            Example: “mmcbride|Work Phone”
-        receipient_type (:Enum:`RecipientType`): This object's type, "Device".
-        externally_owned (bool): True if the object is managed by an
-            external system. False by default.
-            A field is externally owned when it is managed by an external
-            system. Externally-owned objects cannot be deleted in the xmatters
-            user interface by most users.
-        default_device (bool): True if this device can receive notifications
-            when the person has no active devices.
-        delay (int): The number of minutes to wait for a response on this
-            device before contacting the next device.
-        description (str): A system-generated description of the device.
-        device_type (:Enum:`DeviceType`): The type of device, EMAIL.
-        name (str): The name of the device.
-            Example: “Work Email”, or “Home Phone”
-        owner (:obj:`PersonReference`): Link to the person who owns the device.
-        priority_threshold (:Enum:`PriorityThreshold`): The minimum priority
-            that an event must have for it to be delivered to this device.
-        provider (:obj:`ReferenceById`): The name of the provider used to send
-            notifications to this device.
-        sequence (str): The order in which the device will be contacted,
-            where 0 represents the first device contacted.
-        test_status (:Enum:`TestStatus`): Whether the device has been tested.
         email_address (str): The email address associated with the device.
             Your system administrator may restrict the domains that are allowed
             to be associated with an email device.
-        timeframes (:obj:`DeviceTimeframeList`): The timeframes the
-            device is active and able to receive notifications. This field is
-            included when the query parameter ?embed=timeframes is included in
-            supported requests.
-        site (:obj:`ReferencebyIdAndSelfLink`): Contains a link you
-            can use to access the site the group uses for holidays.
-        external_key (str, optional): Ids a resource in an external system.
-        locked (:obj:`list` of :obj:`str`): A list of fields that
-            cannot be modified in the xmatters user interface.
-        status (:Enum:`RecipientStatus`): Whether the recipient is
-            active. Inactive recipients do not receive notifications.
-            Note: this field is not included with dynamic teams because they
-            are always active.
-        links (:obj:`SelfLink`): A link that can be used to access the
-            object from within the API. This link is not included with Dynamic
-            Team Recipients because they cannot yet be directly manipulated with
-            this API.
     """
     _arg_names = (
         Device._common_arg_names +
@@ -428,52 +358,9 @@ class VoiceDevice(Device):
             this API.
 
     Attributes:
-        id (str): A unique id that represents the recipient.
-        target_name (str): For devices, the target name is the user name,
-            followed by the | (pipe) character, followed by the device name.
-            Example: “mmcbride|Work Phone”
-        receipient_type (:Enum:`RecipientType`): This object's type, "Device".
-        externally_owned (bool): True if the object is managed by an
-            external system. False by default.
-            A field is externally owned when it is managed by an external
-            system. Externally-owned objects cannot be deleted in the xmatters
-            user interface by most users.
-        default_device (bool): True if this device can receive notifications
-            when the person has no active devices.
-        delay (int): The number of minutes to wait for a response on this
-            device before contacting the next device.
-        description (str): A system-generated description of the device.
-        device_type (:Enum:`DeviceType`): The type of device, VOICE.
-        name (str): The name of the device.
-            Example: “Work Email”, or “Home Phone”
-        owner (:obj:`PersonReference`): Link to the person who owns the device.
-        priority_threshold (:Enum:`PriorityThreshold`): The minimum priority
-            that an event must have for it to be delivered to this device.
-        provider (:obj:`ReferenceById`): The name of the provider used to send
-            notifications to this device.
-        sequence (str): The order in which the device will be contacted,
-            where 0 represents the first device contacted.
-        test_status (:Enum:`TestStatus`): Whether the device has been tested.
         phone_number (str): The phone numbers associated with this device.
             The phone number uses E.164 international format including country
             code and extension.  Example: +16045551234;ext=88
-        timeframes (:obj:`DeviceTimeframeList`): The timeframes the
-            device is active and able to receive notifications. This field is
-            included when the query parameter ?embed=timeframes is included in
-            supported requests.
-        site (:obj:`ReferencebyIdAndSelfLink`): Contains a link you
-            can use to access the site the group uses for holidays.
-        external_key (str, optional): Ids a resource in an external system.
-        locked (:obj:`list` of :obj:`str`): A list of fields that
-            cannot be modified in the xmatters user interface.
-        status (:Enum:`RecipientStatus`): Whether the recipient is
-            active. Inactive recipients do not receive notifications.
-            Note: this field is not included with dynamic teams because they
-            are always active.
-        links (:obj:`SelfLink`): A link that can be used to access the
-            object from within the API. This link is not included with Dynamic
-            Team Recipients because they cannot yet be directly manipulated with
-            this API.
     """
     _arg_names = (
         Device._common_arg_names +
@@ -554,53 +441,9 @@ class SMSDevice(Device):
             this API.
 
     Attributes:
-        id (str): A unique id that represents the recipient.
-        target_name (str): For devices, the target name is the user name,
-            followed by the | (pipe) character, followed by the device name.
-            Example: “mmcbride|Work Phone”
-        receipient_type (:Enum:`RecipientType`): This object's type, "Device".
-        externally_owned (bool): True if the object is managed by an
-            external system. False by default.
-            A field is externally owned when it is managed by an external
-            system. Externally-owned objects cannot be deleted in the xmatters
-            user interface by most users.
-        default_device (bool): True if this device can receive notifications
-            when the person has no active devices.
-        delay (int): The number of minutes to wait for a response on this
-            device before contacting the next device.
-        description (str): A system-generated description of the device.
-        device_type (:Enum:`DeviceType`): For SMS (text message) devices,
-            the device type is “TEXT_PHONE”.
-        name (str): The name of the device.
-            Example: “Work Email”, or “Home Phone”
-        owner (:obj:`PersonReference`): Link to the person who owns the device.
-        priority_threshold (:Enum:`PriorityThreshold`): The minimum priority
-            that an event must have for it to be delivered to this device.
-        provider (:obj:`ReferenceById`): The name of the provider used to send
-            notifications to this device.
-        sequence (str): The order in which the device will be contacted,
-            where 0 represents the first device contacted.
-        test_status (:Enum:`TestStatus`): Whether the device has been tested.
         phone_number (str): The phone numbers associated with this device.
             The phone number uses E.164 international format including country
             code and extension. Example: +12505551212
-        timeframes (:obj:`DeviceTimeframeList`): The timeframes the
-            device is active and able to receive notifications. This field is
-            included when the query parameter ?embed=timeframes is included in
-            supported requests.
-        site (:obj:`ReferencebyIdAndSelfLink`): Contains a link you
-            can use to access the site the group uses for holidays.
-        external_key (str, optional): Ids a resource in an external system.
-        locked (:obj:`list` of :obj:`str`): A list of fields that
-            cannot be modified in the xmatters user interface.
-        status (:Enum:`RecipientStatus`): Whether the recipient is
-            active. Inactive recipients do not receive notifications.
-            Note: this field is not included with dynamic teams because they
-            are always active.
-        links (:obj:`SelfLink`): A link that can be used to access the
-            object from within the API. This link is not included with Dynamic
-            Team Recipients because they cannot yet be directly manipulated with
-            this API.
     """
     _arg_names = (
         Device._common_arg_names +
@@ -682,54 +525,10 @@ class TextPagerDevice(Device):
             this API.
 
     Attributes:
-        id (str): A unique id that represents the recipient.
-        target_name (str): For devices, the target name is the user name,
-            followed by the | (pipe) character, followed by the device name.
-            Example: “mmcbride|Work Phone”
-        receipient_type (:Enum:`RecipientType`): This object's type, "Device".
-        externally_owned (bool): True if the object is managed by an
-            external system. False by default.
-            A field is externally owned when it is managed by an external
-            system. Externally-owned objects cannot be deleted in the xmatters
-            user interface by most users.
-        default_device (bool): True if this device can receive notifications
-            when the person has no active devices.
-        delay (int): The number of minutes to wait for a response on this
-            device before contacting the next device.
-        description (str): A system-generated description of the device.
-        device_type (:Enum:`DeviceType`): For text pager devices, the device
-            type is “TEXT_PAGER”.
-        name (str): The name of the device.
-            Example: “Work Email”, or “Home Phone”
-        owner (:obj:`PersonReference`): Link to the person who owns the device.
-        priority_threshold (:Enum:`PriorityThreshold`): The minimum priority
-            that an event must have for it to be delivered to this device.
-        provider (:obj:`ReferenceById`): The name of the provider used to send
-            notifications to this device.
-        sequence (str): The order in which the device will be contacted,
-            where 0 represents the first device contacted.
-        test_status (:Enum:`TestStatus`): Whether the device has been tested.
         pin (str): The PIN code for the pager.
         two_way_device (bool): True if the pager is capable of sending a return
             message in response to a notification. False if the pager can only
             receive notifications.
-        timeframes (:obj:`DeviceTimeframeList`): The timeframes the
-            device is active and able to receive notifications. This field is
-            included when the query parameter ?embed=timeframes is included in
-            supported requests.
-        site (:obj:`ReferencebyIdAndSelfLink`): Contains a link you
-            can use to access the site the group uses for holidays.
-        external_key (str, optional): Ids a resource in an external system.
-        locked (:obj:`list` of :obj:`str`): A list of fields that
-            cannot be modified in the xmatters user interface.
-        status (:Enum:`RecipientStatus`): Whether the recipient is
-            active. Inactive recipients do not receive notifications.
-            Note: this field is not included with dynamic teams because they
-            are always active.
-        links (:obj:`SelfLink`): A link that can be used to access the
-            object from within the API. This link is not included with Dynamic
-            Team Recipients because they cannot yet be directly manipulated with
-            this API.
     """
     _arg_names = (
         Device._common_arg_names +
@@ -815,55 +614,11 @@ class ApplePushDevice(Device):
             this API.
 
     Attributes:
-        id (str): A unique id that represents the recipient.
-        target_name (str): For devices, the target name is the user name,
-            followed by the | (pipe) character, followed by the device name.
-            Example: “mmcbride|Work Phone”
-        receipient_type (:Enum:`RecipientType`): This object's type, "Device".
-        externally_owned (bool): True if the object is managed by an
-            external system. False by default.
-            A field is externally owned when it is managed by an external
-            system. Externally-owned objects cannot be deleted in the xmatters
-            user interface by most users.
-        default_device (bool): True if this device can receive notifications
-            when the person has no active devices.
-        delay (int): The number of minutes to wait for a response on this
-            device before contacting the next device.
-        description (str): A system-generated description of the device.
-        device_type (:Enum:`DeviceType`): For Apple push devices, the device
-            type is “APPLE_PUSH”.
-        name (str): The name of the device.
-            Example: “Work Email”, or “Home Phone”
-        owner (:obj:`PersonReference`): Link to the person who owns the device.
-        priority_threshold (:Enum:`PriorityThreshold`): The minimum priority
-            that an event must have for it to be delivered to this device.
-        provider (:obj:`ReferenceById`): The name of the provider used to send
-            notifications to this device.
-        sequence (str): The order in which the device will be contacted,
-            where 0 represents the first device contacted.
-        test_status (:Enum:`TestStatus`): Whether the device has been tested.
         account_id (str): The email address associated with the device.
         apn_token (str): The APN token associated with the device.
         alert_sound (str): The alert sound associated with the device.
         sound_status (str): The sound status of the device.
         sound_threshold (str): The sound threshold of the device.
-        timeframes (:obj:`DeviceTimeframeList`): The timeframes the
-            device is active and able to receive notifications. This field is
-            included when the query parameter ?embed=timeframes is included in
-            supported requests.
-        site (:obj:`ReferencebyIdAndSelfLink`): Contains a link you
-            can use to access the site the group uses for holidays.
-        external_key (str, optional): Ids a resource in an external system.
-        locked (:obj:`list` of :obj:`str`): A list of fields that
-            cannot be modified in the xmatters user interface.
-        status (:Enum:`RecipientStatus`): Whether the recipient is
-            active. Inactive recipients do not receive notifications.
-            Note: this field is not included with dynamic teams because they
-            are always active.
-        links (:obj:`SelfLink`): A link that can be used to access the
-            object from within the API. This link is not included with Dynamic
-            Team Recipients because they cannot yet be directly manipulated with
-            this API.
     """
     _arg_names = (
         Device._common_arg_names +
@@ -949,52 +704,8 @@ class AndroidPushDevice(Device):
             this API.
 
     Attributes:
-        id (str): A unique id that represents the recipient.
-        target_name (str): For devices, the target name is the user name,
-            followed by the | (pipe) character, followed by the device name.
-            Example: “mmcbride|Work Phone”
-        receipient_type (:Enum:`RecipientType`): This object's type, "Device".
-        externally_owned (bool): True if the object is managed by an
-            external system. False by default.
-            A field is externally owned when it is managed by an external
-            system. Externally-owned objects cannot be deleted in the xmatters
-            user interface by most users.
-        default_device (bool): True if this device can receive notifications
-            when the person has no active devices.
-        delay (int): The number of minutes to wait for a response on this
-            device before contacting the next device.
-        description (str): A system-generated description of the device.
-        device_type (:Enum:`DeviceType`): For Android push devices, the device
-            type is “ANDROID_PUSH”.
-        name (str): The name of the device.
-            Example: “Work Email”, or “Home Phone”
-        owner (:obj:`PersonReference`): Link to the person who owns the device.
-        priority_threshold (:Enum:`PriorityThreshold`): The minimum priority
-            that an event must have for it to be delivered to this device.
-        provider (:obj:`ReferenceById`): The name of the provider used to send
-            notifications to this device.
-        sequence (str): The order in which the device will be contacted,
-            where 0 represents the first device contacted.
-        test_status (:Enum:`TestStatus`): Whether the device has been tested.
         account_id (str): The account ID of the device.
         registration_id (str): The registration ID associated with the device.
-        timeframes (:obj:`DeviceTimeframeList`): The timeframes the
-            device is active and able to receive notifications. This field is
-            included when the query parameter ?embed=timeframes is included in
-            supported requests.
-        site (:obj:`ReferencebyIdAndSelfLink`): Contains a link you
-            can use to access the site the group uses for holidays.
-        external_key (str, optional): Ids a resource in an external system.
-        locked (:obj:`list` of :obj:`str`): A list of fields that
-            cannot be modified in the xmatters user interface.
-        status (:Enum:`RecipientStatus`): Whether the recipient is
-            active. Inactive recipients do not receive notifications.
-            Note: this field is not included with dynamic teams because they
-            are always active.
-        links (:obj:`SelfLink`): A link that can be used to access the
-            object from within the API. This link is not included with Dynamic
-            Team Recipients because they cannot yet be directly manipulated with
-            this API.
     """
     _arg_names = (
         Device._common_arg_names +
@@ -1077,52 +788,8 @@ class BlackBerryPushDevice(Device):
             this API.
 
     Attributes:
-        id (str): A unique id that represents the recipient.
-        target_name (str): For devices, the target name is the user name,
-            followed by the | (pipe) character, followed by the device name.
-            Example: “mmcbride|Work Phone”
-        receipient_type (:Enum:`RecipientType`): This object's type, "Device".
-        externally_owned (bool): True if the object is managed by an
-            external system. False by default.
-            A field is externally owned when it is managed by an external
-            system. Externally-owned objects cannot be deleted in the xmatters
-            user interface by most users.
-        default_device (bool): True if this device can receive notifications
-            when the person has no active devices.
-        delay (int): The number of minutes to wait for a response on this
-            device before contacting the next device.
-        description (str): A system-generated description of the device.
-        device_type (:Enum:`DeviceType`): For Android push devices, the device
-            type is “ANDROID_PUSH”.
-        name (str): The name of the device.
-            Example: “Work Email”, or “Home Phone”
-        owner (:obj:`PersonReference`): Link to the person who owns the device.
-        priority_threshold (:Enum:`PriorityThreshold`): The minimum priority
-            that an event must have for it to be delivered to this device.
-        provider (:obj:`ReferenceById`): The name of the provider used to send
-            notifications to this device.
-        sequence (str): The order in which the device will be contacted,
-            where 0 represents the first device contacted.
-        test_status (:Enum:`TestStatus`): Whether the device has been tested.
         account_id (str): The account ID of the device.
         registration_id (str): The registration ID associated with the device.
-        timeframes (:obj:`DeviceTimeframeList`): The timeframes the
-            device is active and able to receive notifications. This field is
-            included when the query parameter ?embed=timeframes is included in
-            supported requests.
-        site (:obj:`ReferencebyIdAndSelfLink`): Contains a link you
-            can use to access the site the group uses for holidays.
-        external_key (str, optional): Ids a resource in an external system.
-        locked (:obj:`list` of :obj:`str`): A list of fields that
-            cannot be modified in the xmatters user interface.
-        status (:Enum:`RecipientStatus`): Whether the recipient is
-            active. Inactive recipients do not receive notifications.
-            Note: this field is not included with dynamic teams because they
-            are always active.
-        links (:obj:`SelfLink`): A link that can be used to access the
-            object from within the API. This link is not included with Dynamic
-            Team Recipients because they cannot yet be directly manipulated with
-            this API.
     """
     _arg_names = (
         Device._common_arg_names +
@@ -1206,32 +873,6 @@ class FaxDevice(Device):
             this API.
 
     Attributes:
-        id (str): A unique id that represents the recipient.
-        target_name (str): For devices, the target name is the user name,
-            followed by the | (pipe) character, followed by the device name.
-            Example: “mmcbride|Work Phone”
-        receipient_type (:Enum:`RecipientType`): This object's type, "Device".
-        externally_owned (bool): True if the object is managed by an
-            external system. False by default.
-            A field is externally owned when it is managed by an external
-            system. Externally-owned objects cannot be deleted in the xmatters
-            user interface by most users.
-        default_device (bool): True if this device can receive notifications
-            when the person has no active devices.
-        delay (int): The number of minutes to wait for a response on this
-            device before contacting the next device.
-        description (str): A system-generated description of the device.
-        device_type (:Enum:`DeviceType`): For fax devices, the type is “FAX”.
-        name (str): The name of the device.
-            Example: “Work Email”, or “Home Phone”
-        owner (:obj:`PersonReference`): Link to the person who owns the device.
-        priority_threshold (:Enum:`PriorityThreshold`): The minimum priority
-            that an event must have for it to be delivered to this device.
-        provider (:obj:`ReferenceById`): The name of the provider used to send
-            notifications to this device.
-        sequence (str): The order in which the device will be contacted,
-            where 0 represents the first device contacted.
-        test_status (:Enum:`TestStatus`): Whether the device has been tested.
         phone_number (str): The phone number, not including country code, for
             the fax. The phone number follows the regular expression 
             pattern ^d{5, 20}$
@@ -1239,23 +880,6 @@ class FaxDevice(Device):
             Note: This phone number format differs from the phone number format
             used for voice, public address, and SMS devices.
         country (str): The country code of the fax device.
-        timeframes (:obj:`DeviceTimeframeList`): The timeframes the
-            device is active and able to receive notifications. This field is
-            included when the query parameter ?embed=timeframes is included in
-            supported requests.
-        site (:obj:`ReferencebyIdAndSelfLink`): Contains a link you
-            can use to access the site the group uses for holidays.
-        external_key (str, optional): Ids a resource in an external system.
-        locked (:obj:`list` of :obj:`str`): A list of fields that
-            cannot be modified in the xmatters user interface.
-        status (:Enum:`RecipientStatus`): Whether the recipient is
-            active. Inactive recipients do not receive notifications.
-            Note: this field is not included with dynamic teams because they
-            are always active.
-        links (:obj:`SelfLink`): A link that can be used to access the
-            object from within the API. This link is not included with Dynamic
-            Team Recipients because they cannot yet be directly manipulated with
-            this API.
     """
     _arg_names = (
         Device._common_arg_names +
@@ -1339,54 +963,10 @@ class PublicAddressDevice(Device):
             this API.
 
     Attributes:
-        id (str): A unique id that represents the recipient.
-        target_name (str): For devices, the target name is the user name,
-            followed by the | (pipe) character, followed by the device name.
-            Example: “mmcbride|Work Phone”
-        receipient_type (:Enum:`RecipientType`): This object's type, "Device".
-        externally_owned (bool): True if the object is managed by an
-            external system. False by default.
-            A field is externally owned when it is managed by an external
-            system. Externally-owned objects cannot be deleted in the xmatters
-            user interface by most users.
-        default_device (bool): True if this device can receive notifications
-            when the person has no active devices.
-        delay (int): The number of minutes to wait for a response on this
-            device before contacting the next device.
-        description (str): A system-generated description of the device.
-        device_type (:Enum:`DeviceType`): For public address devices, the 
-            device type is “VOICE_IVR”.
-        name (str): The name of the device.
-            Example: “Work Email”, or “Home Phone”
-        owner (:obj:`PersonReference`): Link to the person who owns the device.
-        priority_threshold (:Enum:`PriorityThreshold`): The minimum priority
-            that an event must have for it to be delivered to this device.
-        provider (:obj:`ReferenceById`): The name of the provider used to send
-            notifications to this device.
-        sequence (str): The order in which the device will be contacted,
-            where 0 represents the first device contacted.
-        test_status (:Enum:`TestStatus`): Whether the device has been tested.
         phone_number (str): The phone numbers associated with this device. The
             phone number uses E.164 international format including country code
             and extension. 
             Example: +15555551212;ext=838
-        timeframes (:obj:`DeviceTimeframeList`): The timeframes the
-            device is active and able to receive notifications. This field is
-            included when the query parameter ?embed=timeframes is included in
-            supported requests.
-        site (:obj:`ReferencebyIdAndSelfLink`): Contains a link you
-            can use to access the site the group uses for holidays.
-        external_key (str, optional): Ids a resource in an external system.
-        locked (:obj:`list` of :obj:`str`): A list of fields that
-            cannot be modified in the xmatters user interface.
-        status (:Enum:`RecipientStatus`): Whether the recipient is
-            active. Inactive recipients do not receive notifications.
-            Note: this field is not included with dynamic teams because they
-            are always active.
-        links (:obj:`SelfLink`): A link that can be used to access the
-            object from within the API. This link is not included with Dynamic
-            Team Recipients because they cannot yet be directly manipulated with
-            this API.
     """
     _arg_names = (
         Device._common_arg_names +
@@ -1465,51 +1045,7 @@ class GenericDevice(Device):
             this API.
 
     Attributes:
-        id (str): A unique id that represents the recipient.
-        target_name (str): For devices, the target name is the user name,
-            followed by the | (pipe) character, followed by the device name.
-            Example: “mmcbride|Work Phone”
-        receipient_type (:Enum:`RecipientType`): This object's type, "Device".
-        externally_owned (bool): True if the object is managed by an
-            external system. False by default.
-            A field is externally owned when it is managed by an external
-            system. Externally-owned objects cannot be deleted in the xmatters
-            user interface by most users.
-        default_device (bool): True if this device can receive notifications
-            when the person has no active devices.
-        delay (int): The number of minutes to wait for a response on this
-            device before contacting the next device.
-        description (str): A system-generated description of the device.
-        device_type (:Enum:`DeviceType`): For generic devices, the device type
-            is “GENERIC”.
-        name (str): The name of the device.
-            Example: “Work Email”, or “Home Phone”
-        owner (:obj:`PersonReference`): Link to the person who owns the device.
-        priority_threshold (:Enum:`PriorityThreshold`): The minimum priority
-            that an event must have for it to be delivered to this device.
-        provider (:obj:`ReferenceById`): The name of the provider used to send
-            notifications to this device.
-        sequence (str): The order in which the device will be contacted,
-            where 0 represents the first device contacted.
-        test_status (:Enum:`TestStatus`): Whether the device has been tested.
         pin (str): The PIN of the device.
-        timeframes (:obj:`DeviceTimeframeList`): The timeframes the
-            device is active and able to receive notifications. This field is
-            included when the query parameter ?embed=timeframes is included in
-            supported requests.
-        site (:obj:`ReferencebyIdAndSelfLink`): Contains a link you
-            can use to access the site the group uses for holidays.
-        external_key (str, optional): Ids a resource in an external system.
-        locked (:obj:`list` of :obj:`str`): A list of fields that
-            cannot be modified in the xmatters user interface.
-        status (:Enum:`RecipientStatus`): Whether the recipient is
-            active. Inactive recipients do not receive notifications.
-            Note: this field is not included with dynamic teams because they
-            are always active.
-        links (:obj:`SelfLink`): A link that can be used to access the
-            object from within the API. This link is not included with Dynamic
-            Team Recipients because they cannot yet be directly manipulated with
-            this API.
     """
     _arg_names = (
         Device._common_arg_names +

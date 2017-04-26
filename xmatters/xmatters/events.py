@@ -1,6 +1,6 @@
-"""xmatters Event
+"""xMatters Event
 
-This class represents a view of the xmatters Event that is created as part of a
+This class represents a view of the xMatters Event that is created as part of a
 request for a notification to occur.  The Event class contains both controlling
 methods (typically static) for retrieving a list of Event instances, as well as
 methods for manipulating instances of events.
